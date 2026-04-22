@@ -1,3 +1,4 @@
+import { Gender } from 'src/common/enums/gender.enum';
 import {
   Entity,
   Column,
@@ -15,11 +16,14 @@ export class Patient {
   @Column()
   name: string;
 
-  //   @Column()
-  //   image: string;
+  @Column()
+  image: string;
 
   @Column()
   phone_number: string;
+
+  @Column()
+  password: string;
 
   @Column()
   birth_date: Date;
@@ -27,28 +31,28 @@ export class Patient {
   @Column()
   address: string;
 
-  @Column()
-  gender: string;
+  @Column({ enum: Gender })
+  gender: Gender;
 
-  @Column()
+  @Column({ nullable: true })
   blood_type?: string;
 
-  @Column()
+  @Column({ nullable: true })
   allergies?: string;
 
-  @Column()
+  @Column({ nullable: true })
   previous_operations?: string;
 
-  @Column()
+  @Column({ nullable: true })
   chronic_diseases?: string;
 
-  @Column()
+  @Column({ nullable: true })
   permanent_medications?: string;
 
-  @Column('int')
+  @Column('int', { nullable: true })
   tall?: number;
 
-  @Column('int')
+  @Column('int', { nullable: true })
   weight?: number;
 
   @CreateDateColumn()
@@ -56,8 +60,4 @@ export class Patient {
 
   @UpdateDateColumn()
   updated_at: Timestamp;
-
-  constructor(patient: Partial<Patient>) {
-    Object.assign(this, patient);
-  }
 }
