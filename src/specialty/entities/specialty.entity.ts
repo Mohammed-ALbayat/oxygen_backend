@@ -9,6 +9,9 @@ export class Specialty {
   @Column()
   title: string;
 
+  @Column('boolean')
+  published: boolean;
+
   @OneToMany(() => Doctor, (doctor) => doctor.specialty)
   doctors: Doctor[];
 }

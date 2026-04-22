@@ -1,26 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { CreateSpecialtyDto } from './dto/create-specialty.dto';
 import { UpdateSpecialtyDto } from './dto/update-specialty.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Specialty } from './entities/specialty.entity';
 
 @Injectable()
 export class SpecialtyService {
-  create(createSpecialtyDto: CreateSpecialtyDto) {
-    return 'This action adds a new specialty';
+  constructor(
+    @InjectRepository(Specialty)
+    private specialtyRepository: Repository<Specialty>,
+  ) {}
+
+  async create(createSpecialtyDto: CreateSpecialtyDto) {
+    const specialty = this.specialtyRepository.create(createSpecialtyDto);
+
+    return this.specialtyRepository.save(specialty);
   }
 
-  findAll() {
-    return `This action returns all specialty`;
+  async findAll() {
+    return this.specialtyRepository.find({ where: { published: true } });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} specialty`;
+  async findOne(id: number) {
+    return this.specialtyRepository.findOne({ where: { id: id } });
   }
 
-  update(id: number, updateSpecialtyDto: UpdateSpecialtyDto) {
-    return `This action updates a #${id} specialty`;
+  async update(id: number, updateSpecialtyDto: UpdateSpecialtyDto) {
+    return this.specialtyRepository.update({ id: id }, updateSpecialtyDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} specialty`;
+  async remove(id: number) {
+    return this.specialtyRepository.delete({ id: id });
   }
 }
