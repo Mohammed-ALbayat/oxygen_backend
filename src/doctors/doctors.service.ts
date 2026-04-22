@@ -1,26 +1,70 @@
 import { Injectable } from '@nestjs/common';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Doctor } from './entities/doctor.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class DoctorsService {
-  create(createDoctorDto: CreateDoctorDto) {
-    return 'This action adds a new doctor';
+  private readonly doctors = [
+    {
+      doctorId: 1,
+      username: 'john',
+      password: 'changeme',
+    },
+    {
+      doctorId: 2,
+      username: 'maria',
+      password: 'guess',
+    },
+  ];
+
+  constructor(
+    @InjectRepository(Doctor)
+    private doctorRepository: Repository<Doctor>,
+  ) {}
+
+  async create(createDoctorDto: CreateDoctorDto) {
+    const { specialty_id, ...doctorData } = createDoctorDto;
+
+    const doctor = this.doctorRepository.create({
+      ...doctorData,
+      specialty: { id: specialty_id },
+    });
+
+    return await this.doctorRepository.save(doctor);
   }
 
-  findAll() {
-    return `This action returns all doctors`;
+  async findAll() {
+    return this.doctorRepository.find({
+      where: {
+        published: true,
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} doctor`;
+  async findOne(id: number) {
+    return this.doctorRepository.findOne({
+      where: {
+        id: id,
+      },
+    });
   }
 
-  update(id: number, updateDoctorDto: UpdateDoctorDto) {
-    return `This action updates a #${id} doctor`;
+  async findByUsername(username: string) {
+    return this.doctorRepository.findOne({
+      where: {
+        username: username,
+      },
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} doctor`;
+  async update(id: number, updateDoctorDto: UpdateDoctorDto) {
+    return this.doctorRepository.update({ id: id }, updateDoctorDto);
+  }
+
+  async remove(id: number) {
+    return this.doctorRepository.delete({ id: id });
   }
 }

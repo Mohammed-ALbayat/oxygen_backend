@@ -55,8 +55,4 @@ export class Doctor {
 
   @UpdateDateColumn()
   updated_at: Timestamp;
-
-  constructor(doctor: Partial<Doctor>) {
-    Object.assign(this, doctor);
-  }
 }
