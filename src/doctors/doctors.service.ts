@@ -7,19 +7,6 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class DoctorsService {
-  private readonly doctors = [
-    {
-      doctorId: 1,
-      username: 'john',
-      password: 'changeme',
-    },
-    {
-      doctorId: 2,
-      username: 'maria',
-      password: 'guess',
-    },
-  ];
-
   constructor(
     @InjectRepository(Doctor)
     private doctorRepository: Repository<Doctor>,
