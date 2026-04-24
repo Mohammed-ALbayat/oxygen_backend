@@ -7,9 +7,11 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  BeforeInsert,
 } from 'typeorm';
 import { DaysOfWeek } from 'src/common/enums/day-of-week.enum';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
+import * as bcrypt from 'bcrypt';
 
 @Entity()
 export class Doctor {
@@ -55,4 +57,9 @@ export class Doctor {
 
   @UpdateDateColumn()
   updated_at: Timestamp;
+
+  @BeforeInsert()
+  async hashPassword() {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
 }

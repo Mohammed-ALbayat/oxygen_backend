@@ -6,7 +6,9 @@ import {
   CreateDateColumn,
   Timestamp,
   UpdateDateColumn,
+  BeforeInsert,
 } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 
 @Entity()
 export class Patient {
@@ -60,4 +62,9 @@ export class Patient {
 
   @UpdateDateColumn()
   updated_at: Timestamp;
+
+  @BeforeInsert()
+  async hashPassword() {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
 }
