@@ -4,6 +4,7 @@ import { UpdateSpecialtyDto } from './dto/update-specialty.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Specialty } from './entities/specialty.entity';
+import { ConflictException } from '@nestjs/common';
 
 @Injectable()
 export class SpecialtyService {
@@ -13,10 +14,23 @@ export class SpecialtyService {
   ) {}
 
   async create(createSpecialtyDto: CreateSpecialtyDto) {
-    const specialty = this.specialtyRepository.create(createSpecialtyDto);
-
-    return this.specialtyRepository.save(specialty);
+    try {
+      const specialty = this.specialtyRepository.create(createSpecialtyDto);
+      const saved = await this.specialtyRepository.save(specialty);
+      
+      return {
+        message: 'تم إضافة التخصص بنجاح',
+        data: saved
+      };
+    } catch (error: any) {
+      // التحقق من كود الخطأ الخاص بالتكرار في MySQL/MariaDB
+      if (error.code === 'ER_DUP_ENTRY' || error.errno === 1062) {
+        throw new ConflictException('هذا التخصص موجود مسبقاً');
+      }
+      throw error;
+    }
   }
+
 
   async findAll() {
     return this.specialtyRepository.find({ where: { published: true } });

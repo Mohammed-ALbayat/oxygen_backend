@@ -14,8 +14,6 @@ export class DoctorsService {
 
   async create(createDoctorDto: CreateDoctorDto) {
     const { specialty_id, password, ...doctorData } = createDoctorDto;
-
-    // تشفير الباسورد
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -27,17 +25,13 @@ export class DoctorsService {
       });
 
       const savedDoctor = await this.doctorRepository.save(doctor);
-
-      // استخدام الـ Destructuring لاستثناء الباسورد
       const { password: _, ...result } = savedDoctor;
 
-      // بما أننا نستخدم Interceptor، نرجع الكائن بهذا الشكل
       return {
         message: 'تم إنشاء حساب الطبيب بنجاح',
         data: result,
       };
     } catch (error: any) {
-      // 1062 هو كود الخطأ لتكرار البيانات في MariaDB/MySQL
       if (error.code === 'ER_DUP_ENTRY' || error.errno === 1062) {
         throw new ConflictException('اسم المستخدم أو رقم الهاتف مسجل مسبقاً');
       }

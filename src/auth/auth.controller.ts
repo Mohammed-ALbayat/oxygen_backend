@@ -1,6 +1,6 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { PatientsService } from '../patients/patients.service'; // استيراد خدمة المرضى
+import { PatientsService } from '../patients/patients.service';
 import { CreatePatientDto } from '../patients/dto/create-patient.dto';
 import { VerifyOtpDto } from '../patients/dto/verify-otp.dto';
 

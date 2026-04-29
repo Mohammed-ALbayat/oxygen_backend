@@ -29,6 +29,7 @@ export class AuthService {
     };
   }
 
+  
   async loginPatient(phone: string, pass: string) {
     const patient = await this.patientsService.findOneByPhone(phone);
     
@@ -44,6 +45,7 @@ export class AuthService {
 
     return this.generateToken(patient, 'patient');
   }
+
 
   async loginDoctor(username: string, pass: string) {
     const doctor = await this.doctorsService.findByUsername(username);
