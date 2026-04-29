@@ -16,7 +16,7 @@ export class Doctor {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: true })
   username: string;
 
   @Column()
@@ -31,7 +31,7 @@ export class Doctor {
   @Column()
   image: string;
 
-  @Column()
+  @Column({ unique: true })
   phone_number: string;
 
   @Column('int')

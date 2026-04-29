@@ -23,9 +23,15 @@ export class AuthController {
     return this.patientsService.verifyOtp(VerifyOtpDto.phone, VerifyOtpDto.otp);
   }
 
-  @Post('login')
+  @Post('loginPatient')
   @HttpCode(HttpStatus.OK)
   async login(@Body() body: { phone: string; pass: string }) {
-    return this.authService.login(body.phone, body.pass);
+    return this.authService.loginPatient(body.phone, body.pass);
+  }
+
+  @Post('loginDoctor')
+  @HttpCode(HttpStatus.OK)
+  async loginDoctor(@Body() body: { username: string; pass: string }) {
+    return this.authService.loginDoctor(body.username, body.pass);
   }
 }
