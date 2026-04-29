@@ -19,7 +19,7 @@ export class Patient {
   @Column()
   image: string;
 
-  @Column()
+  @Column({ unique: true })
   phone_number: string;
 
   @Column()
@@ -31,7 +31,10 @@ export class Patient {
   @Column()
   address: string;
 
-  @Column({ enum: Gender })
+  @Column({ 
+    type: 'enum',
+    enum: Gender,
+   })
   gender: Gender;
 
   @Column({ nullable: true })
@@ -54,6 +57,9 @@ export class Patient {
 
   @Column('int', { nullable: true })
   weight?: number;
+
+  @Column({ default: false })
+  is_verified: boolean;
 
   @CreateDateColumn()
   created_at: Timestamp;

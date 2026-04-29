@@ -15,10 +15,10 @@ import { UpdatePatientDto } from './dto/update-patient.dto';
 export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 
-  @Post()
-  create(@Body() createPatientDto: CreatePatientDto) {
-    return this.patientsService.create(createPatientDto);
-  }
+  // @Post()
+  // create(@Body() createPatientDto: CreatePatientDto) {
+  //   return this.patientsService.create(createPatientDto.phone_number, createPatientDto.password);
+  // }
 
   @Get()
   findAll() {
