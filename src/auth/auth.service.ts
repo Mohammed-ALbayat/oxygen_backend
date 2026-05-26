@@ -2,7 +2,11 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PatientsService } from '../patients/patients.service';
 import { DoctorsService } from '../doctors/doctors.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { User, UserRole } from 'src/users/entities/user.entity';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -10,51 +14,81 @@ export class AuthService {
     private patientsService: PatientsService,
     private doctorsService: DoctorsService,
     private jwtService: JwtService,
+    @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
-  private generateToken(user: any, role: 'patient' | 'doctor') {
-    const payload = { 
-      sub: user.id, 
-      username: user.username || user.phone_number,
-      role: role
+  private generateToken(user: any, role: UserRole) {
+    const payload = {
+      sub: user.id,
+      phone: user.phone,
+      role: role,
+      tv: user.token_version,
     };
-    
+
     return {
       access_token: this.jwtService.sign(payload),
       user: {
         id: user.id,
-        name: user.name,
-        role: role
-      }
+        full_name: user.full_name,
+        role: role,
+      },
     };
   }
 
   
-  async loginPatient(phone: string, pass: string) {
-    const patient = await this.patientsService.findOneByPhone(phone);
+  async createAdmin() {
+    const existingAdmin = await this.userRepository.findOne({
+      where: {
+        role: UserRole.ADMIN,
+      },
+    });
+
+    if (existingAdmin) {
+      return {
+        message: 'Admin already exists',
+      };
+    }
+
+    const hashedPassword = await bcrypt.hash('admin123', 10);
+
+    const admin = this.userRepository.create({
+      full_name: 'System Admin',
+      username: 'admin',
+      phone: '0000000000',
+      password: hashedPassword,
+      role: UserRole.ADMIN,
+      is_verified: true,
+    });
+
+    await this.userRepository.save(admin);
+
+    return {
+      message: 'Admin created successfully',
+    };
+  }
+
+  async login(dto: LoginDto) {
+    const user = await this.userRepository.findOne({
+      where: { phone: dto.phone },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('بيانات الدخول غير صحيحة');
+    }
+
+    const isMatch = await bcrypt.compare(dto.password, user.password);
+
+    if (!isMatch) {
+      throw new UnauthorizedException('بيانات الدخول غير صحيحة');
+    }
+
+    user.token_version += 1;
+     await this.userRepository.save(user);
+    return this.generateToken(user, user.role);
     
-    const isMatch = await bcrypt.compare(pass, patient?.password || '');
-
-    if (!patient || !isMatch) {
-      throw new UnauthorizedException('رقم الهاتف أو كلمة المرور غير صحيحة');
-    }
-
-    if (!patient.is_verified) {
-      throw new UnauthorizedException('يرجى تفعيل الحساب أولاً');
-    }
-
-    return this.generateToken(patient, 'patient');
   }
 
 
-  async loginDoctor(username: string, pass: string) {
-    const doctor = await this.doctorsService.findByUsername(username);
-    const isMatch = await bcrypt.compare(pass, doctor?.password || '');
 
-    if (!doctor || !isMatch) {
-      throw new UnauthorizedException('اسم المستخدم أو كلمة المرور غير صحيحة');
-    }
 
-    return this.generateToken(doctor, 'doctor');
-  }
 }

@@ -1,69 +1,90 @@
-import { Gender } from 'src/common/enums/gender.enum';
+import { User } from 'src/users/entities/user.entity';
 import {
-  Entity,
   Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
   PrimaryGeneratedColumn,
-  CreateDateColumn,
-  Timestamp,
-  UpdateDateColumn,
 } from 'typeorm';
 
-@Entity()
+export enum Gender {
+  MALE = 'male',
+  FEMALE = 'female',
+}
+export enum BloodType {
+  A_POSITIVE = 'A+',
+  A_NEGATIVE = 'A-',
+  B_POSITIVE = 'B+',
+  B_NEGATIVE = 'B-',
+  AB_POSITIVE = 'AB+',
+  AB_NEGATIVE = 'AB-',
+  O_POSITIVE = 'O+',
+  O_NEGATIVE = 'O-',
+}
+
+
+
+@Entity('patients')
 export class Patient {
+
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  name: string;
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
-  @Column()
-  image: string;
-
-  @Column({ unique: true })
-  phone_number: string;
-
-  @Column()
-  password: string;
-
-  @Column()
+  @Column({
+    type: 'date',
+    nullable: true,
+  })
   birth_date: Date;
 
-  @Column()
+  @Column('text', {
+    nullable: true,
+  })
   address: string;
 
-  @Column({ 
+  @Column({
     type: 'enum',
     enum: Gender,
-   })
+  })
   gender: Gender;
 
-  @Column({ nullable: true })
-  blood_type?: string;
+    @Column({
+    type: 'enum',
+    enum: BloodType,
+    nullable: true,
+  })
+  blood_type?: BloodType;
 
-  @Column({ nullable: true })
+  @Column('text', {
+    nullable: true,
+  })
   allergies?: string;
 
-  @Column({ nullable: true })
+  @Column('text', {
+    nullable: true,
+  })
   previous_operations?: string;
 
-  @Column({ nullable: true })
+  @Column('text', {
+    nullable: true,
+  })
   chronic_diseases?: string;
 
-  @Column({ nullable: true })
+  @Column('text', {
+    nullable: true,
+  })
   permanent_medications?: string;
 
-  @Column('int', { nullable: true })
+  @Column('int', {
+    nullable: true,
+  })
   tall?: number;
 
-  @Column('int', { nullable: true })
+  @Column('int', {
+    nullable: true,
+  })
   weight?: number;
-
-  @Column({ default: false })
-  is_verified: boolean;
-
-  @CreateDateColumn()
-  created_at: Timestamp;
-
-  @UpdateDateColumn()
-  updated_at: Timestamp;
 }

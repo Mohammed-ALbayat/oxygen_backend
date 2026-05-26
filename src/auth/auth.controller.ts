@@ -3,35 +3,31 @@ import { AuthService } from './auth.service';
 import { PatientsService } from '../patients/patients.service';
 import { CreatePatientDto } from '../patients/dto/create-patient.dto';
 import { VerifyOtpDto } from '../patients/dto/verify-otp.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly patientsService: PatientsService, // حقن خدمة المرضى هنا
+    private readonly patientsService: PatientsService,
   ) {}
 
-  @Post('register')
-  async register(@Body() createPatientDto: CreatePatientDto) {
-    // استخدمنا create التي عدلناها سابقاً لتشفير الباسورد ووضع OTP ثابت
-    return this.patientsService.create(createPatientDto);
+
+
+
+  @Post('create-admin')
+  createAdmin() {
+    return this.authService.createAdmin();
   }
 
-  @Post('verify')
+  @Post('admin/login')
   @HttpCode(HttpStatus.OK)
-  async verify(@Body() VerifyOtpDto:VerifyOtpDto ) {
-    return this.patientsService.verifyOtp(VerifyOtpDto.phone, VerifyOtpDto.otp);
+  login(@Body() dto: LoginDto) {
+    return this.authService.login(dto);
   }
 
-  @Post('loginPatient')
-  @HttpCode(HttpStatus.OK)
-  async login(@Body() body: { phone: string; pass: string }) {
-    return this.authService.loginPatient(body.phone, body.pass);
-  }
 
-  @Post('loginDoctor')
-  @HttpCode(HttpStatus.OK)
-  async loginDoctor(@Body() body: { username: string; pass: string }) {
-    return this.authService.loginDoctor(body.username, body.pass);
-  }
+
+
+
 }
