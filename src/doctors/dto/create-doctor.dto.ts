@@ -1,60 +1,36 @@
-import { Type } from 'class-transformer';
-import {
-  IsString,
-  IsNotEmpty,
-  IsPhoneNumber,
-  IsPositive,
-  IsBoolean,
-  IsOptional,
-  IsArray,
-  ValidateNested,
-} from 'class-validator';
-import { WorkingHourDto } from './working-hour.dto';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { UserRole } from 'src/users/entities/user.entity';
+import { Column } from 'typeorm';
 
 export class CreateDoctorDto {
   @IsString()
   @IsNotEmpty()
-  username: string;
+  full_name: string;
 
   @IsString()
   @IsNotEmpty()
-  password: string;
+  phone: string;
 
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @IsString()
   @IsOptional()
-  description?: string;
-
   @IsString()
-  @IsNotEmpty()
-  image: string;
-
-  @IsPhoneNumber('SY')
-  @IsNotEmpty()
-  phone_number: string;
-
-  @IsPositive()
-  @IsNotEmpty()
-  salary: number;
-
-  @IsBoolean()
-  @IsNotEmpty()
-  published: boolean;
-
-  @IsPositive()
-  @IsNotEmpty()
+  password?: string;
+  
+  @IsString()
+  username: string;
+    
+  @IsNumber()
   specialty_id: number;
 
   @IsString()
-  @IsOptional()
-  certification?: string;
+  specialization: string;
 
   @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => WorkingHourDto)
-  working_hours?: WorkingHourDto[];
+  @IsString()
+  bio?: string;
+
+  @IsNumber()
+  examination_price: number;
+
+  @IsNumber()
+  doctor_percentage: number;
 }

@@ -10,6 +10,7 @@ import { Doctor } from 'src/doctors/entities/doctor.entity';
 import { Patient } from 'src/patients/entities/patient.entity';
 import { Secretary } from 'src/secretaries/entities/secretary.entity';
 import { BadRequestException } from '@nestjs/common';
+import { CreateDoctorDto } from './dto/create-doctor.dto';
 
 
 @Injectable()
@@ -32,7 +33,43 @@ export class UsersService {
 
   ) {}
 
+  async createDoctor(dto: CreateDoctorDto) {
+   const existing = await this.userRepository.findOne({
+      where: { phone: dto.phone },
+    });
+    if (existing) {
+      throw new ConflictException('رقم الهاتف موجود مسبقاً');
+    }
+    let hashedPassword: string = "";
+    if (dto.password) {
+      hashedPassword = await bcrypt.hash(dto.password, 10);
+    }
+    const user = this.userRepository.create({
+      full_name: dto.full_name,
+      phone: dto.phone,
+      password: hashedPassword,
+      role: UserRole.DOCTOR,
+    });
+    const savedUser = await this.userRepository.save(user);
+    const specialty = await this.specialtyRepository.findOne({
+      where: { id: dto.specialty_id },
+    });
+    if (!specialty) {
+      throw new NotFoundException('القسم غير موجود');
+    }
+    const doctor = this.doctorRepository.create({
+      user: savedUser,
+      specialty: specialty,
+      specialization: dto.specialization,
+      bio: dto.bio,
+      examination_price: dto.examination_price,
+      doctor_percentage: dto.doctor_percentage,
+    });
+    await this.doctorRepository.save(doctor);
+    return savedUser;
+  }
 
+  
 
 
   async createUser(dto: CreateUserDto) {

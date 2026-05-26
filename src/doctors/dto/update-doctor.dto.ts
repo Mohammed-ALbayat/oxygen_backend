@@ -12,6 +12,10 @@ export class UpdateDoctorFullDto {
 
   @IsOptional()
   @IsString()
+  username: string;
+  
+  @IsOptional()
+  @IsString()
   specialization?: string;
 
   @IsOptional()

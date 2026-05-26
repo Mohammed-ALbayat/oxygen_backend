@@ -14,33 +14,38 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { UserRole } from 'src/users/entities/user.entity';
+import { CreateDoctorDto } from './dto/create-doctor.dto';
 
 @Controller('doctors')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class DoctorsController {
   constructor(private readonly doctorsService: DoctorsService) {}
-
+  
+  
+  @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async create(@Body() createDoctorDto: CreateDoctorDto) {
+    return this.doctorsService.createDoctor(createDoctorDto);
+  }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   update( @Param('id') id: string, @Body() updateDoctorFullDto: UpdateDoctorFullDto,) {
     return this.doctorsService.updateDoctor(+id, updateDoctorFullDto);
   }
 
   @Post('forgot-password')
-  @Roles(UserRole.DOCTOR)
   async forgotPassword(@Body('phone') phone: string) {
-    return this.doctorsService.forgotPassword(phone);
+    return this.doctorsService.sendOTP(phone);
   }
 
   @Post('verify-otp')
-  @Roles(UserRole.DOCTOR)
   async verifyOtp(@Body('phone') phone: string, @Body('otp') otp: string) {
     return this.doctorsService.verifyOtp(phone, otp);
   }
 
   @Post('reset-password')
-  @Roles(UserRole.DOCTOR)
   async resetPassword(@Body('phone') phone: string, @Body('newPassword') newPassword: string) {
     return this.doctorsService.resetPassword(phone, newPassword);
   }

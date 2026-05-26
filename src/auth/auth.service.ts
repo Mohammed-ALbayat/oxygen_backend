@@ -7,6 +7,8 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User, UserRole } from 'src/users/entities/user.entity';
 import { LoginDto } from './dto/login.dto';
+import { generateToken } from './utils/jwt.util';
+
 
 @Injectable()
 export class AuthService {
@@ -17,23 +19,23 @@ export class AuthService {
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
-  private generateToken(user: any, role: UserRole) {
-    const payload = {
-      sub: user.id,
-      phone: user.phone,
-      role: role,
-      tv: user.token_version,
-    };
+  // private generateToken(user: any, role: UserRole) {
+  //   const payload = {
+  //     sub: user.id,
+  //     phone: user.phone,
+  //     role: role,
+  //     tv: user.token_version,
+  //   };
 
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: {
-        id: user.id,
-        full_name: user.full_name,
-        role: role,
-      },
-    };
-  }
+  //   return {
+  //     access_token: this.jwtService.sign(payload),
+  //     user: {
+  //       id: user.id,
+  //       full_name: user.full_name,
+  //       role: role,
+  //     },
+  //   };
+  // }
 
   
   async createAdmin() {
@@ -84,7 +86,7 @@ export class AuthService {
 
     user.token_version += 1;
      await this.userRepository.save(user);
-    return this.generateToken(user, user.role);
+    return generateToken(user, user.role, this.jwtService);
     
   }
 
