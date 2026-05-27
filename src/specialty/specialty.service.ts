@@ -4,6 +4,7 @@ import { UpdateSpecialtyDto } from './dto/update-specialty.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Specialty } from './entities/specialty.entity';
+import { ConflictException } from '@nestjs/common';
 
 @Injectable()
 export class SpecialtyService {
@@ -12,25 +13,14 @@ export class SpecialtyService {
     private specialtyRepository: Repository<Specialty>,
   ) {}
 
-  async create(createSpecialtyDto: CreateSpecialtyDto) {
-    const specialty = this.specialtyRepository.create(createSpecialtyDto);
-
-    return this.specialtyRepository.save(specialty);
-  }
-
-  async findAll() {
-    return this.specialtyRepository.find({ where: { published: true } });
-  }
-
-  async findOne(id: number) {
-    return this.specialtyRepository.findOne({ where: { id: id } });
-  }
-
-  async update(id: number, updateSpecialtyDto: UpdateSpecialtyDto) {
-    return this.specialtyRepository.update({ id: id }, updateSpecialtyDto);
-  }
-
-  async remove(id: number) {
-    return this.specialtyRepository.delete({ id: id });
-  }
+    async createSpecialty(dto: CreateSpecialtyDto) {
+        const existing = await this.specialtyRepository.findOne({
+          where: { title: dto.title },
+        });
+        if (existing) {
+          throw new ConflictException('Specialty with this title already exists');
+        }
+        const specialty = this.specialtyRepository.create(dto);
+        return this.specialtyRepository.save(specialty);
+      }
 }

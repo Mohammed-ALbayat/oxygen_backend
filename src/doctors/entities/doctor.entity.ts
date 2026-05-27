@@ -1,65 +1,51 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  Timestamp,
-  UpdateDateColumn,
-  ManyToOne,
-  JoinColumn,
-  BeforeInsert,
-} from 'typeorm';
-import { DaysOfWeek } from 'src/common/enums/day-of-week.enum';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
-import * as bcrypt from 'bcrypt';
+import { User } from 'src/users/entities/user.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
-@Entity()
+@Entity('doctors')
 export class Doctor {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  username: string;
-
-  @Column()
-  password: string;
-
-  @Column()
-  name: string;
-
-  @Column({ nullable: true })
-  description?: string;
-
-  @Column()
-  image: string;
-
-  @Column()
-  phone_number: string;
-
-  @Column('int')
-  salary: number;
-
-  @Column('boolean', { default: true })
-  published: boolean;
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
   @ManyToOne(() => Specialty, (specialty) => specialty.doctors)
   @JoinColumn({ name: 'specialty_id' })
   specialty: Specialty;
 
-  @Column({ nullable: true })
-  certification?: string;
+  @Column()
+  specialization: string;
 
-  @Column({ type: 'json', nullable: true })
-  working_hours?: { day: DaysOfWeek; start_time: string; end_time: string }[];
+  @Column('text', { nullable: true })
+  bio: string;
 
-  @CreateDateColumn()
-  created_at: Timestamp;
+  @Column('decimal', {
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
+  examination_price: number;
 
-  @UpdateDateColumn()
-  updated_at: Timestamp;
+  @Column('decimal', {
+    precision: 5,
+    scale: 2,
+    default: 0,
+  })
+  doctor_percentage: number;
 
-  @BeforeInsert()
-  async hashPassword() {
-    this.password = await bcrypt.hash(this.password, 10);
-  }
+  @Column('decimal', {
+    precision: 3,
+    scale: 2,
+    default: 0,
+  })
+  average_rating: number;
 }

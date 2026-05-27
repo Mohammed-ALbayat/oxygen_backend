@@ -6,6 +6,9 @@ import { DoctorsModule } from './doctors/doctors.module';
 import { DatabaseModule } from './database/database.module';
 import { SpecialtyModule } from './specialty/specialty.module';
 import { PatientsModule } from './patients/patients.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { SecretariesModule } from './secretaries/secretaries.module';
 
 @Module({
   imports: [
@@ -17,6 +20,9 @@ import { PatientsModule } from './patients/patients.module';
     DatabaseModule,
     SpecialtyModule,
     PatientsModule,
+    AuthModule,
+    UsersModule,
+    SecretariesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
