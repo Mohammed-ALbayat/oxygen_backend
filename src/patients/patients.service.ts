@@ -185,8 +185,8 @@ export class PatientsService {
     user.token_version += 1;
     await this.userRepository.save(user);
 
-    return generateToken(user, 'patient', this.jwtService);
-    // return { generateToken(user, 'patient', this.jwtService),
+    return generateToken(user, UserRole.PATIENT, this.jwtService);
+    // return { generateToken(user, UserRole.PATIENT, this.jwtService),
     //   message: 'OTP verified' };
   }
 
@@ -205,7 +205,7 @@ export class PatientsService {
     }
     user.token_version += 1;
     await this.userRepository.save(user);
-    return generateToken(user, 'patient', this.jwtService);
+    return generateToken(user, UserRole.PATIENT, this.jwtService);
   }
 
 }
