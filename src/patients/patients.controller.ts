@@ -17,40 +17,51 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { Roles } from 'src/auth/roles.decorator';
 import { UserRole } from 'src/users/entities/user.entity';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
-
+@ApiBearerAuth()
 @Controller('patients')
 export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.SECRETARY , UserRole.PATIENT)
+  @Roles(UserRole.ADMIN, UserRole.SECRETARY, UserRole.PATIENT)
   @UseGuards(JwtAuthGuard, RolesGuard)
   create(@Body() createPatientDto: CreatePatientDto) {
     return this.patientsService.createPatient(createPatientDto);
   }
 
   @Post('profile/:userId')
-  @Roles(UserRole.ADMIN, UserRole.SECRETARY , UserRole.PATIENT)
+  @Roles(UserRole.ADMIN, UserRole.SECRETARY, UserRole.PATIENT)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  createProfile(@Body() createPatientProfileDto: CreatePatientProfileDto,@Param('userId') userId: number,)
-  {
-    return this.patientsService.createPatientProfile(userId, createPatientProfileDto);
+  createProfile(
+    @Body() createPatientProfileDto: CreatePatientProfileDto,
+    @Param('userId') userId: number,
+  ) {
+    return this.patientsService.createPatientProfile(
+      userId,
+      createPatientProfileDto,
+    );
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN, UserRole.SECRETARY , UserRole.PATIENT)
+  @Roles(UserRole.ADMIN, UserRole.SECRETARY, UserRole.PATIENT)
   @UseGuards(JwtAuthGuard, RolesGuard)
   update(@Param('id') id: string, @Body() updatePatientDto: UpdatePatientDto) {
     return this.patientsService.updatePatient(+id, updatePatientDto);
   }
 
   @Patch('profile/:userId')
-  @Roles(UserRole.ADMIN, UserRole.SECRETARY , UserRole.PATIENT)
+  @Roles(UserRole.ADMIN, UserRole.SECRETARY, UserRole.PATIENT)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  updateProfile(@Body() updatePatientProfileDto: UpdatePatientProfileDto,@Param('userId') userId: number,) 
-  {
-    return this.patientsService.updatePatientProfile(userId, updatePatientProfileDto);
+  updateProfile(
+    @Body() updatePatientProfileDto: UpdatePatientProfileDto,
+    @Param('userId') userId: number,
+  ) {
+    return this.patientsService.updatePatientProfile(
+      userId,
+      updatePatientProfileDto,
+    );
   }
 
   @Post('send-otp')
@@ -67,5 +78,4 @@ export class PatientsController {
   login(@Body('phone') phone: string) {
     return this.patientsService.loginPatient(phone);
   }
-
 }

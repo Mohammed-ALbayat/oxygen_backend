@@ -15,12 +15,13 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { UserRole } from 'src/users/entities/user.entity';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('doctors')
 export class DoctorsController {
   constructor(private readonly doctorsService: DoctorsService) {}
-  
-  
+
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
@@ -31,7 +32,10 @@ export class DoctorsController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  update( @Param('id') id: string, @Body() updateDoctorFullDto: UpdateDoctorFullDto,) {
+  update(
+    @Param('id') id: string,
+    @Body() updateDoctorFullDto: UpdateDoctorFullDto,
+  ) {
     return this.doctorsService.updateDoctor(+id, updateDoctorFullDto);
   }
 
@@ -46,7 +50,10 @@ export class DoctorsController {
   }
 
   @Post('reset-password')
-  async resetPassword(@Body('phone') phone: string, @Body('newPassword') newPassword: string) {
+  async resetPassword(
+    @Body('phone') phone: string,
+    @Body('newPassword') newPassword: string,
+  ) {
     return this.doctorsService.resetPassword(phone, newPassword);
   }
 }

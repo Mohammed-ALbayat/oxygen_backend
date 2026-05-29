@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Param, Body,UseGuards, HttpCode } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
 import { Roles } from 'src/auth/roles.decorator';
@@ -6,19 +15,16 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UserRole } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { HttpStatus } from '@nestjs/common';
 import { Query } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
-
-
+@ApiBearerAuth()
 @Controller('users/admin')
 @Roles(UserRole.ADMIN)
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
 
- constructor(private readonly usersService: UsersService) {}
-
-  
   @Post()
   @Roles(UserRole.ADMIN)
   create(@Body() dto: CreateUserDto) {
@@ -57,7 +63,10 @@ export class UsersController {
 
   @Put(':id/reset-password')
   @Roles(UserRole.ADMIN)
-  resetPassword(@Param('id') id: number, @Body('newPassword') newPassword: string) {
+  resetPassword(
+    @Param('id') id: number,
+    @Body('newPassword') newPassword: string,
+  ) {
     return this.usersService.resetPassword(id, newPassword);
   }
 
@@ -65,5 +74,5 @@ export class UsersController {
   @Roles(UserRole.ADMIN)
   search(@Query() query: any) {
     return this.usersService.findAll(query);
-}
+  }
 }
