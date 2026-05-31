@@ -19,8 +19,7 @@ import { CreateDoctorDto } from './dto/create-doctor.dto';
 @Controller('doctors')
 export class DoctorsController {
   constructor(private readonly doctorsService: DoctorsService) {}
-  
-  
+
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
@@ -31,7 +30,10 @@ export class DoctorsController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  update( @Param('id') id: string, @Body() updateDoctorFullDto: UpdateDoctorFullDto,) {
+  update(
+    @Param('id') id: string,
+    @Body() updateDoctorFullDto: UpdateDoctorFullDto,
+  ) {
     return this.doctorsService.updateDoctor(+id, updateDoctorFullDto);
   }
 
@@ -46,7 +48,10 @@ export class DoctorsController {
   }
 
   @Post('reset-password')
-  async resetPassword(@Body('phone') phone: string, @Body('newPassword') newPassword: string) {
+  async resetPassword(
+    @Body('phone') phone: string,
+    @Body('newPassword') newPassword: string,
+  ) {
     return this.doctorsService.resetPassword(phone, newPassword);
   }
 }

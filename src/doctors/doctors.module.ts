@@ -7,7 +7,7 @@ import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { User } from 'src/users/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Doctor,Specialty,User])],
+  imports: [TypeOrmModule.forFeature([Doctor, Specialty, User])],
   controllers: [DoctorsController],
   providers: [DoctorsService],
   exports: [DoctorsService], // تأكد من تصدير الخدمة إذا كانت مستخدمة في أماكن أخرى

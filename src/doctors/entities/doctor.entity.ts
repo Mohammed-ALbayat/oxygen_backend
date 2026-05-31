@@ -1,3 +1,4 @@
+import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.entity';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
@@ -5,6 +6,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -14,13 +16,18 @@ export class Doctor {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => User)
+  @OneToOne(() => User, (user) => user.doctor, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
   @ManyToOne(() => Specialty, (specialty) => specialty.doctors)
   @JoinColumn({ name: 'specialty_id' })
   specialty: Specialty;
+
+  @OneToMany(() => DoctorSchedule, (schedule) => schedule.doctor)
+  schedules: DoctorSchedule[];
 
   @Column()
   specialization: string;

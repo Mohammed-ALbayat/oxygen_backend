@@ -1,14 +1,14 @@
-import { 
-  Injectable, 
-  ConflictException, 
-  NotFoundException, 
-  BadRequestException 
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
-import {Patient} from './entities/patient.entity';
+import { Patient } from './entities/patient.entity';
 import { generateToken } from '../auth/utils/jwt.util';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { CreatePatientProfileDto } from './dto/create-profile-patient.dto';
@@ -30,26 +30,46 @@ export class PatientsService {
     private jwtService: JwtService,
   ) {}
 
-  
-  async createPatient(dto: CreatePatientDto) {
-            const existing = await this.userRepository.findOne({
-              where: { phone: dto.phone },
-          });
+  async registerPatient(dto: CreatePatientDto) {
+    const existing = await this.userRepository.findOne({
+      where: { phone: dto.phone },
+    });
+    if (existing) {
+      throw new ConflictException('رقم الهاتف موجود مسبقاً');
+    }
+    const patient = this.userRepository.create({
+      full_name: dto.full_name,
+      username: dto.username,
+      phone: dto.phone,
+      role: UserRole.PATIENT,
+    });
+    const savedPatient = await this.userRepository.save(patient);
+    // إرسال OTP للمريض
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    savedPatient.otp_code = otp;
+    savedPatient.otp_expires_at = new Date(Date.now() + 5 * 60 * 1000);
+    await this.userRepository.save(savedPatient);
+    return savedPatient;
+  }
 
-  
-          if (existing) {
-              throw new ConflictException('رقم الهاتف موجود مسبقاً');
-          }  
-          const patient = this.userRepository.create({
-              full_name: dto.full_name,
-              username: dto.username,
-              phone: dto.phone,
-              role: UserRole.PATIENT,
-          });
-  
-          const savedPatient = await this.userRepository.save(patient);
-          return savedPatient;    
-        }
+  async createPatient(dto: CreatePatientDto) {
+    const existing = await this.userRepository.findOne({
+      where: { phone: dto.phone },
+    });
+
+    if (existing) {
+      throw new ConflictException('رقم الهاتف موجود مسبقاً');
+    }
+    const patient = this.userRepository.create({
+      full_name: dto.full_name,
+      username: dto.username,
+      phone: dto.phone,
+      role: UserRole.PATIENT,
+    });
+
+    const savedPatient = await this.userRepository.save(patient);
+    return savedPatient;
+  }
 
   async createPatientProfile(userId: number, dto: CreatePatientProfileDto) {
     const user = await this.userRepository.findOne({
@@ -67,35 +87,31 @@ export class PatientsService {
     if (existingProfile) {
       throw new ConflictException('الملف الشخصي للمريض موجود مسبقاً');
     }
-  
+
     const patientProfile = this.patientRepository.create({
       user: user,
       birth_date: dto.birth_date,
-      address: dto.address
-    
+      address: dto.address,
     });
     return await this.patientRepository.save(patientProfile);
   }
-  
 
   async updatePatient(id: number, updateData: UpdatePatientDto) {
-      
-          const patient = await this.userRepository.findOne({
-            where: { id },
-          });
-          if (!patient) {
-            throw new NotFoundException('المريض غير موجود');
-          }
-            if (updateData.full_name !== undefined) {
-            patient.full_name = updateData.full_name;
-          }
-          if (updateData.username !== undefined) {
-            patient.username = updateData.username;
-          }
-          
-      
-          return await this.userRepository.save(patient);
-        }
+    const patient = await this.userRepository.findOne({
+      where: { id },
+    });
+    if (!patient) {
+      throw new NotFoundException('المريض غير موجود');
+    }
+    if (updateData.full_name !== undefined) {
+      patient.full_name = updateData.full_name;
+    }
+    if (updateData.username !== undefined) {
+      patient.username = updateData.username;
+    }
+
+    return await this.userRepository.save(patient);
+  }
 
   async updatePatientProfile(userId: number, dto: UpdatePatientProfileDto) {
     const patientProfile = await this.patientRepository.findOne({
@@ -127,10 +143,10 @@ export class PatientsService {
     if (dto.chronic_diseases !== undefined) {
       patientProfile.chronic_diseases = dto.chronic_diseases;
     }
-    if (dto.weight !== undefined){
+    if (dto.weight !== undefined) {
       patientProfile.weight = dto.weight;
     }
-    if (dto.tall !== undefined){
+    if (dto.tall !== undefined) {
       patientProfile.tall = dto.tall;
     }
 
@@ -161,9 +177,6 @@ export class PatientsService {
     return { message: 'OTP sent successfully' };
   }
 
-
-
-
   async verifyOtp(phone: string, otp: string) {
     const user = await this.userRepository.findOne({
       where: {
@@ -176,7 +189,7 @@ export class PatientsService {
       throw new BadRequestException('OTP غير صحيح');
     }
 
-    if (user.otp_expires_at === null ||user.otp_expires_at < new Date()) {
+    if (user.otp_expires_at === null || user.otp_expires_at < new Date()) {
       throw new BadRequestException('OTP منتهي الصلاحية');
     }
     user.otp_code = null;
@@ -189,8 +202,6 @@ export class PatientsService {
     // return { generateToken(user, UserRole.PATIENT, this.jwtService),
     //   message: 'OTP verified' };
   }
-
-
 
   async loginPatient(phone: string) {
     const user = await this.userRepository.findOne({
@@ -207,5 +218,4 @@ export class PatientsService {
     await this.userRepository.save(user);
     return generateToken(user, UserRole.PATIENT, this.jwtService);
   }
-
 }

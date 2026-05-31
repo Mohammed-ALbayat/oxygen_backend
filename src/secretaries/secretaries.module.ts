@@ -8,8 +8,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Secretary } from './entities/secretary.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Doctor,Specialty,User,Secretary])],
+  imports: [TypeOrmModule.forFeature([Doctor, Specialty, User, Secretary])],
   providers: [SecretariesService],
-  controllers: [SecretariesController]
+  controllers: [SecretariesController],
 })
 export class SecretariesModule {}

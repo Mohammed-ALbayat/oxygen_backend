@@ -1,11 +1,6 @@
-import {
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateSecretaryDto {
-
   @IsString()
   @IsNotEmpty()
   full_name: string;
@@ -21,7 +16,6 @@ export class CreateSecretaryDto {
   @IsOptional()
   @IsString()
   password?: string;
-
 
   @IsOptional()
   @IsString()

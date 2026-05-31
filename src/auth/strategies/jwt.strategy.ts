@@ -10,7 +10,7 @@ import { User } from 'src/users/entities/user.entity';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    @InjectRepository(User) private userRepository: Repository<User>
+    @InjectRepository(User) private userRepository: Repository<User>,
   ) {
     super({
       // استخراج التوكن من الـ Header كـ Bearer Token

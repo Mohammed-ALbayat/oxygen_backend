@@ -9,7 +9,6 @@ import {
 import { BloodType, Gender } from '../entities/patient.entity';
 
 export class UpdatePatientProfileDto {
-
   @IsOptional()
   @IsDateString()
   birth_date?: Date;

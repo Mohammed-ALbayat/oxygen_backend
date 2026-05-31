@@ -10,15 +10,9 @@ import { Secretary } from 'src/secretaries/entities/secretary.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      User,
-      Doctor,
-      Patient,
-      Secretary,
-      Specialty
-    ])
+    TypeOrmModule.forFeature([User, Doctor, Patient, Secretary, Specialty]),
   ],
   providers: [UsersService],
-  controllers: [UsersController]
+  controllers: [UsersController],
 })
 export class UsersModule {}

@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { SpecialtyService } from './specialty.service';
 import { CreateSpecialtyDto } from './dto/create-specialty.dto';
 import { UpdateSpecialtyDto } from './dto/update-specialty.dto';
@@ -14,9 +22,13 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 export class SpecialtyController {
   constructor(private readonly specialtyService: SpecialtyService) {}
 
-    @Post()
-    createSpecialty(@Body() dto: CreateSpecialtyDto) {
-      return this.specialtyService.createSpecialty(dto);
-    }
-  
+  @Post()
+  createSpecialty(@Body() dto: CreateSpecialtyDto) {
+    return this.specialtyService.createSpecialty(dto);
+  }
+
+  @Patch(':id')
+  updateSpecialty(@Param('id') id: string, @Body() dto: UpdateSpecialtyDto) {
+    return this.specialtyService.updateSpecialty(+id, dto);
+  }
 }

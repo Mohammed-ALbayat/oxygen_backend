@@ -4,6 +4,11 @@ import {
   Column,
   CreateDateColumn,
 } from 'typeorm';
+import { Doctor } from 'src/doctors/entities/doctor.entity';
+import { Patient } from 'src/patients/entities/patient.entity';
+import { Secretary } from 'src/secretaries/entities/secretary.entity';
+import { OneToOne } from 'typeorm';
+import { Matches } from 'class-validator';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -29,6 +34,9 @@ export class User {
   @Column({
     unique: true,
   })
+  @Matches(/^09\d{8}$/, {
+    message: 'رقم الهاتف يجب أن يبدأ بـ 09 ويتكون من 10 أرقام',
+  })
   phone: string;
 
   @Column()
@@ -51,12 +59,11 @@ export class User {
   })
   status: UserStatus;
 
- @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   otp_code: string | null;
 
-
   @Column({ type: 'datetime', nullable: true })
-otp_expires_at: Date | null;
+  otp_expires_at: Date | null;
 
   @Column({
     default: false,
@@ -68,4 +75,13 @@ otp_expires_at: Date | null;
 
   @CreateDateColumn()
   created_at: Date;
+
+  @OneToOne(() => Doctor, (doctor) => doctor.user)
+  doctor: Doctor;
+
+  @OneToOne(() => Patient, (patient) => patient.user)
+  patient: Patient;
+
+  @OneToOne(() => Secretary, (secretary) => secretary.user)
+  secretary: Secretary;
 }
