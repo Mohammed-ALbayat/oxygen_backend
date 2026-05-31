@@ -17,7 +17,10 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UseGuards } from '@nestjs/common';
 import { Roles } from 'src/auth/roles.decorator';
 import { UserRole } from 'src/users/entities/user.entity';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
+import { MessageDto } from 'src/common/dto/message.dto';
+import { PhonenumberDto } from 'src/common/dto/phonenumber.dto';
+import { PhonenumberOtpDto } from 'src/common/dto/phonenumber-otp.dto';
 
 @Controller('patients')
 export class PatientsController {
@@ -69,17 +72,29 @@ export class PatientsController {
   }
 
   @Post('send-otp')
-  sendOtp(@Body('phone') phone: string) {
-    return this.patientsService.sendOtp(phone);
+  @ApiOkResponse({
+    type: MessageDto,
+  })
+  sendOtp(@Body() phone: PhonenumberDto) {
+    return this.patientsService.sendOtp(phone.phonenumber);
   }
 
   @Post('verify-otp')
-  verifyOtp(@Body('phone') phone: string, @Body('otp') otp: string) {
-    return this.patientsService.verifyOtp(phone, otp);
+  @ApiOkResponse({
+    type: MessageDto,
+  })
+  verifyOtp(@Body() phonenumberOtp: PhonenumberOtpDto) {
+    return this.patientsService.verifyOtp(
+      phonenumberOtp.phonenumber,
+      phonenumberOtp.otp,
+    );
   }
 
   @Post('login')
-  login(@Body('phone') phone: string) {
-    return this.patientsService.loginPatient(phone);
+  @ApiOkResponse({
+    type: MessageDto,
+  })
+  login(@Body() phone: PhonenumberDto) {
+    return this.patientsService.loginPatient(phone.phonenumber);
   }
 }

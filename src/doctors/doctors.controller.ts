@@ -15,7 +15,11 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { UserRole } from 'src/users/entities/user.entity';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
+import { PhonenumberDto } from 'src/common/dto/phonenumber.dto';
+import { PhonenumberOtpDto } from 'src/common/dto/phonenumber-otp.dto';
+import { ResetPasswordDto } from 'src/common/dto/reset-password.dto';
+import { MessageDto } from 'src/common/dto/message.dto';
 
 @ApiBearerAuth()
 @Controller('doctors')
@@ -40,20 +44,32 @@ export class DoctorsController {
   }
 
   @Post('forgot-password')
-  async forgotPassword(@Body('phone') phone: string) {
-    return this.doctorsService.sendOTP(phone);
+  @ApiOkResponse({
+    type: MessageDto,
+  })
+  async forgotPassword(@Body() phone: PhonenumberDto) {
+    return this.doctorsService.sendOTP(phone.phonenumber);
   }
 
   @Post('verify-otp')
-  async verifyOtp(@Body('phone') phone: string, @Body('otp') otp: string) {
-    return this.doctorsService.verifyOtp(phone, otp);
+  @ApiOkResponse({
+    type: MessageDto,
+  })
+  async verifyOtp(@Body() phonenumberOtp: PhonenumberOtpDto) {
+    return this.doctorsService.verifyOtp(
+      phonenumberOtp.phonenumber,
+      phonenumberOtp.otp,
+    );
   }
 
   @Post('reset-password')
-  async resetPassword(
-    @Body('phone') phone: string,
-    @Body('newPassword') newPassword: string,
-  ) {
-    return this.doctorsService.resetPassword(phone, newPassword);
+  @ApiOkResponse({
+    type: MessageDto,
+  })
+  async resetPassword(@Body() resetPassword: ResetPasswordDto) {
+    return this.doctorsService.resetPassword(
+      resetPassword.phonenumber,
+      resetPassword.newPassword,
+    );
   }
 }

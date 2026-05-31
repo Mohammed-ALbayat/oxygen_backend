@@ -7,7 +7,11 @@ import { CreateSecretaryDto } from './dto/create-secretary.dto';
 import { UserRole } from 'src/users/entities/user.entity';
 import { UseGuards } from '@nestjs/common';
 import { UpdateSecretaryDto } from './dto/update-secretary.dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
+import { MessageDto } from 'src/common/dto/message.dto';
+import { ResetPasswordDto } from 'src/common/dto/reset-password.dto';
+import { PhonenumberDto } from 'src/common/dto/phonenumber.dto';
+import { PhonenumberOtpDto } from 'src/common/dto/phonenumber-otp.dto';
 
 @ApiBearerAuth()
 @Controller('secretaries')
@@ -32,20 +36,32 @@ export class SecretariesController {
   }
 
   @Post('forgot-password')
-  async forgotPassword(@Body('phone') phone: string) {
-    return this.secretariesService.sendOTP(phone);
+  @ApiOkResponse({
+    type: MessageDto,
+  })
+  async forgotPassword(@Body() phone: PhonenumberDto) {
+    return this.secretariesService.sendOTP(phone.phonenumber);
   }
 
   @Post('verify-otp')
-  async verifyOTP(@Body('phone') phone: string, @Body('otp') otp: string) {
-    return this.secretariesService.verifyOtp(phone, otp);
+  @ApiOkResponse({
+    type: MessageDto,
+  })
+  async verifyOTP(@Body() phonenumberOtp: PhonenumberOtpDto) {
+    return this.secretariesService.verifyOtp(
+      phonenumberOtp.phonenumber,
+      phonenumberOtp.otp,
+    );
   }
 
   @Post('reset-password')
-  async resetPassword(
-    @Body('phone') phone: string,
-    @Body('newPassword') newPassword: string,
-  ) {
-    return this.secretariesService.resetPassword(phone, newPassword);
+  @ApiOkResponse({
+    type: MessageDto,
+  })
+  async resetPassword(@Body() resetPassword: ResetPasswordDto) {
+    return this.secretariesService.resetPassword(
+      resetPassword.phonenumber,
+      resetPassword.newPassword,
+    );
   }
 }

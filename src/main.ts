@@ -7,6 +7,7 @@ import { DoctorsSeed } from './database/seeds/doctors.seed';
 import { SpecialtiesSeed } from './database/seeds/specialties.seed';
 import { PatientsSeed } from './database/seeds/patients.seed';
 import { SecretariesSeed } from './database/seeds/secretaries.seed';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,6 +19,15 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  const config = new DocumentBuilder()
+    .setTitle('Oxygen')
+    .setDescription('Oxygen API')
+    .setVersion('1.0')
+    .build();
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, documentFactory);
+
   const adminSeed = app.get(AdminSeed);
   const specialtiesSeed = app.get(SpecialtiesSeed);
   const doctorsSeed = app.get(DoctorsSeed);
