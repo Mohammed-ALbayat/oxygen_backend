@@ -27,15 +27,14 @@ export class DoctorsService {
     private userRepository: Repository<User>,
   ) {}
 
-  
   async createDoctor(dto: CreateDoctorDto) {
-   const existing = await this.userRepository.findOne({
+    const existing = await this.userRepository.findOne({
       where: { phone: dto.phone },
     });
     if (existing) {
       throw new ConflictException('رقم الهاتف موجود مسبقاً');
     }
-    let hashedPassword: string = "";
+    let hashedPassword: string = '';
     if (dto.password) {
       hashedPassword = await bcrypt.hash(dto.password, 10);
     }
@@ -65,10 +64,7 @@ export class DoctorsService {
     return savedUser;
   }
 
-
-  
- async updateDoctor(id: number, updateData: UpdateDoctorFullDto) {
-
+  async updateDoctor(id: number, updateData: UpdateDoctorFullDto) {
     const doctor = await this.doctorRepository.findOne({
       where: { id },
       relations: ['specialty', 'user'],
@@ -77,13 +73,12 @@ export class DoctorsService {
     if (!doctor) {
       throw new NotFoundException('الطبيب غير موجود');
     }
-      if (updateData.full_name !== undefined) {
+    if (updateData.full_name !== undefined) {
       doctor.user.full_name = updateData.full_name;
     }
     if (updateData.username !== undefined) {
       doctor.user.username = updateData.username;
     }
-    
 
     if (updateData.specialty_id) {
       const specialty = await this.specialtyRepository.findOne({
@@ -93,7 +88,7 @@ export class DoctorsService {
         throw new NotFoundException('القسم غير موجود');
       }
 
-        doctor.specialty = specialty;
+      doctor.specialty = specialty;
     }
 
     if (updateData.specialization !== undefined) {
@@ -115,19 +110,16 @@ export class DoctorsService {
     return await this.doctorRepository.save(doctor);
   }
 
-
-
   async sendOTP(phone: string) {
-
     const user = await this.userRepository.findOne({
       where: { phone: phone, role: UserRole.DOCTOR },
     });
-    
+
     if (!user) {
       throw new NotFoundException('Doctor not found');
     }
-    
-    user.is_verified=false;
+
+    user.is_verified = false;
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     user.otp_code = otp;
@@ -142,8 +134,6 @@ export class DoctorsService {
       message: 'OTP sent successfully',
     };
   }
-
-
 
   async verifyOtp(phone: string, otp: string) {
     const user = await this.userRepository.findOne({
@@ -162,15 +152,12 @@ export class DoctorsService {
       throw new BadRequestException('OTP expired');
     }
 
-    user.is_verified=true;
+    user.is_verified = true;
     await this.userRepository.save(user);
     return {
       message: 'OTP verified',
     };
   }
-
-
-
 
   async resetPassword(phone: string, newPassword: string) {
     const user = await this.userRepository.findOne({

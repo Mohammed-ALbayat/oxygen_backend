@@ -22,15 +22,14 @@ export enum BloodType {
   O_NEGATIVE = 'O-',
 }
 
-
-
 @Entity('patients')
 export class Patient {
-
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => User)
+  @OneToOne(() => User, (user) => user.patient, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
@@ -51,7 +50,7 @@ export class Patient {
   })
   gender: Gender;
 
-    @Column({
+  @Column({
     type: 'enum',
     enum: BloodType,
     nullable: true,

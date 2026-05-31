@@ -19,13 +19,17 @@ import { Roles } from 'src/auth/roles.decorator';
 import { UserRole } from 'src/users/entities/user.entity';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
-@ApiBearerAuth()
 @Controller('patients')
 export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 
+  @Post('register')
+  register(@Body() createPatientDto: CreatePatientDto) {
+    return this.patientsService.registerPatient(createPatientDto);
+  }
+
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.SECRETARY, UserRole.PATIENT)
+  @Roles(UserRole.ADMIN, UserRole.SECRETARY)
   @UseGuards(JwtAuthGuard, RolesGuard)
   create(@Body() createPatientDto: CreatePatientDto) {
     return this.patientsService.createPatient(createPatientDto);

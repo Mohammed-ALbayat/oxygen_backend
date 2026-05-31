@@ -12,22 +12,14 @@ export class AuthController {
     private readonly patientsService: PatientsService,
   ) {}
 
-
-
-
   @Post('create-admin')
   createAdmin() {
     return this.authService.createAdmin();
   }
 
-  @Post('admin/login')
+  @Post('login')
   @HttpCode(HttpStatus.OK)
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
   }
-
-
-
-
-
 }

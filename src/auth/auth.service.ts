@@ -9,7 +9,6 @@ import { User, UserRole } from 'src/users/entities/user.entity';
 import { LoginDto } from './dto/login.dto';
 import { generateToken } from './utils/jwt.util';
 
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -37,7 +36,6 @@ export class AuthService {
   //   };
   // }
 
-  
   async createAdmin() {
     const existingAdmin = await this.userRepository.findOne({
       where: {
@@ -85,12 +83,7 @@ export class AuthService {
     }
 
     user.token_version += 1;
-     await this.userRepository.save(user);
+    await this.userRepository.save(user);
     return generateToken(user, user.role, this.jwtService);
-    
   }
-
-
-
-
 }

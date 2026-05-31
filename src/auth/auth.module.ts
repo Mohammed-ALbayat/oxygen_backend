@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { PatientsModule } from '../patients/patients.module'; 
-import { DoctorsModule } from '../doctors/doctors.module'; 
+import { PatientsModule } from '../patients/patients.module';
+import { DoctorsModule } from '../doctors/doctors.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { jwtConstants } from './constants';
@@ -20,10 +20,10 @@ import { User } from 'src/users/entities/user.entity';
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '1d' }, // التوكن صالح ليوم واحد
     }),
-    TypeOrmModule.forFeature([User])
+    TypeOrmModule.forFeature([User]),
   ],
-  
-  providers: [AuthService, JwtStrategy], 
+
+  providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
   exports: [AuthService],
 })

@@ -1,11 +1,9 @@
 import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateSecretaryDto {
-
   @IsOptional()
   @IsString()
   full_name?: string;
-
 
   @IsOptional()
   @IsString()
@@ -14,7 +12,6 @@ export class UpdateSecretaryDto {
   @IsOptional()
   @IsString()
   password?: string;
-
 
   @IsOptional()
   @IsString()

@@ -1,4 +1,10 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { UserRole } from 'src/users/entities/user.entity';
 import { Column } from 'typeorm';
 
@@ -14,10 +20,10 @@ export class CreateDoctorDto {
   @IsOptional()
   @IsString()
   password?: string;
-  
+
   @IsString()
   username: string;
-    
+
   @IsNumber()
   specialty_id: number;
 

@@ -1,7 +1,6 @@
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpdateDoctorFullDto {
-
   @IsOptional()
   @IsString()
   full_name?: string;
@@ -13,7 +12,7 @@ export class UpdateDoctorFullDto {
   @IsOptional()
   @IsString()
   username: string;
-  
+
   @IsOptional()
   @IsString()
   specialization?: string;

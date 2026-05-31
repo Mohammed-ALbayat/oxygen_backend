@@ -30,6 +30,28 @@ export class PatientsService {
     private jwtService: JwtService,
   ) {}
 
+  async registerPatient(dto: CreatePatientDto) {
+    const existing = await this.userRepository.findOne({
+      where: { phone: dto.phone },
+    });
+    if (existing) {
+      throw new ConflictException('رقم الهاتف موجود مسبقاً');
+    }
+    const patient = this.userRepository.create({
+      full_name: dto.full_name,
+      username: dto.username,
+      phone: dto.phone,
+      role: UserRole.PATIENT,
+    });
+    const savedPatient = await this.userRepository.save(patient);
+    // إرسال OTP للمريض
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    savedPatient.otp_code = otp;
+    savedPatient.otp_expires_at = new Date(Date.now() + 5 * 60 * 1000);
+    await this.userRepository.save(savedPatient);
+    return savedPatient;
+  }
+
   async createPatient(dto: CreatePatientDto) {
     const existing = await this.userRepository.findOne({
       where: { phone: dto.phone },
@@ -177,7 +199,7 @@ export class PatientsService {
     await this.userRepository.save(user);
 
     return generateToken(user, UserRole.PATIENT, this.jwtService);
-    // return { generateToken(user, 'patient', this.jwtService),
+    // return { generateToken(user, UserRole.PATIENT, this.jwtService),
     //   message: 'OTP verified' };
   }
 

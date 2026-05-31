@@ -28,4 +28,9 @@ export class SpecialtyController {
   createSpecialty(@Body() dto: CreateSpecialtyDto) {
     return this.specialtyService.createSpecialty(dto);
   }
+
+  @Patch(':id')
+  updateSpecialty(@Param('id') id: string, @Body() dto: UpdateSpecialtyDto) {
+    return this.specialtyService.updateSpecialty(+id, dto);
+  }
 }

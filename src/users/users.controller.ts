@@ -7,35 +7,22 @@ import {
   Param,
   Body,
   UseGuards,
+  HttpCode,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
 import { Roles } from 'src/auth/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UserRole } from './entities/user.entity';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { HttpStatus } from '@nestjs/common';
 import { Query } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
-@ApiBearerAuth()
 @Controller('users/admin')
 @Roles(UserRole.ADMIN)
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  @Post()
-  @Roles(UserRole.ADMIN)
-  create(@Body() dto: CreateUserDto) {
-    return this.usersService.createUser(dto);
-  }
-
-  @Put(':id')
-  @Roles(UserRole.ADMIN)
-  update(@Param('id') id: number, @Body() dto: UpdateUserDto) {
-    return this.usersService.updateUser(id, dto);
-  }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)

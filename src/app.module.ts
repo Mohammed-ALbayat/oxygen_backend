@@ -9,6 +9,8 @@ import { PatientsModule } from './patients/patients.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { SecretariesModule } from './secretaries/secretaries.module';
+import { DoctorSchedulesModule } from './doctor-schedules/doctor-schedules.module';
+import { SeedModule } from './database/seeds/seed.module';
 
 @Module({
   imports: [
@@ -16,6 +18,7 @@ import { SecretariesModule } from './secretaries/secretaries.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    SeedModule,
     DoctorsModule,
     DatabaseModule,
     SpecialtyModule,
@@ -23,6 +26,7 @@ import { SecretariesModule } from './secretaries/secretaries.module';
     AuthModule,
     UsersModule,
     SecretariesModule,
+    DoctorSchedulesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
