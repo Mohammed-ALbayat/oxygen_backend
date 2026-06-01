@@ -18,7 +18,7 @@ import { User } from 'src/users/entities/user.entity';
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '1d' }, // التوكن صالح ليوم واحد
+      signOptions: { expiresIn: '1d' },
     }),
     TypeOrmModule.forFeature([User]),
   ],
