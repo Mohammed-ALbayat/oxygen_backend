@@ -8,6 +8,7 @@ import { SpecialtiesSeed } from './database/seeds/specialties.seed';
 import { PatientsSeed } from './database/seeds/patients.seed';
 import { SecretariesSeed } from './database/seeds/secretaries.seed';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { WhatsAppService } from './whatsapp/whatsapp.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -39,6 +40,9 @@ async function bootstrap() {
   await doctorsSeed.seed();
   await patientsSeed.seed();
   await secretariesSeed.seed();
+
   await app.listen(process.env.PORT ?? 3000);
+  // const whatsapp = app.get(WhatsAppService);
+  // await whatsapp.connect();
 }
 bootstrap();

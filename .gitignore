@@ -12,6 +12,10 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+# WhatsApp session (Baileys)
+whatsapp-session/
+storage/whatsapp/
+
 # OS
 .DS_Store
 

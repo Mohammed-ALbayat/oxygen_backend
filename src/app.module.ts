@@ -11,6 +11,7 @@ import { UsersModule } from './users/users.module';
 import { SecretariesModule } from './secretaries/secretaries.module';
 import { DoctorSchedulesModule } from './doctor-schedules/doctor-schedules.module';
 import { SeedModule } from './database/seeds/seed.module';
+import { WhatsAppModule } from './whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { SeedModule } from './database/seeds/seed.module';
     UsersModule,
     SecretariesModule,
     DoctorSchedulesModule,
+    WhatsAppModule,
   ],
   controllers: [AppController],
   providers: [AppService],

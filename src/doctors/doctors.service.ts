@@ -1,4 +1,8 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -9,6 +13,7 @@ import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { User, UserRole } from 'src/users/entities/user.entity';
 import { BadRequestException } from '@nestjs/common';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
+import { WhatsAppService } from 'src/whatsapp/whatsapp.service';
 
 @Injectable()
 export class DoctorsService {
@@ -21,6 +26,8 @@ export class DoctorsService {
 
     @InjectRepository(User)
     private userRepository: Repository<User>,
+
+    private whatsappService: WhatsAppService,
   ) {}
 
   async createDoctor(dto: CreateDoctorDto) {
@@ -106,28 +113,56 @@ export class DoctorsService {
     return await this.doctorRepository.save(doctor);
   }
 
+  // async sendOTP(phone: string) {
+  //   const user = await this.userRepository.findOne({
+  //     where: { phone: phone, role: UserRole.DOCTOR },
+  //   });
+
+  //   if (!user) {
+  //     throw new NotFoundException('Doctor not found');
+  //   }
+
+  //   user.is_verified = false;
+  //   const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  //   user.otp_code = otp;
+  //   user.otp_expires_at = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+
+  //   await this.userRepository.save(user);
+
+  //   // إرسال واتساب بعدين بس تزبط معنا
+  //   console.log('OTP:', otp);
+
+  //   return {
+  //     message: 'OTP sent successfully',
+  //   };
+  // }
+
   async sendOTP(phone: string) {
     const user = await this.userRepository.findOne({
-      where: { phone: phone, role: UserRole.DOCTOR },
+      where: { phone, role: UserRole.DOCTOR },
     });
 
     if (!user) {
       throw new NotFoundException('Doctor not found');
     }
 
-    user.is_verified = false;
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
+    user.is_verified = false;
     user.otp_code = otp;
-    user.otp_expires_at = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+    user.otp_expires_at = new Date(Date.now() + 5 * 60 * 1000);
 
     await this.userRepository.save(user);
-
-    // إرسال واتساب بعدين بس تزبط معنا
-    console.log('OTP:', otp);
+    this.whatsappService
+      .sendMessage(
+        user.phone,
+        `رمز التحقق الخاص بك هو: ${otp}. صالح لمدة 5 دقائق فقط.\n\n ${user.full_name}، شكراً لاستخدامك أوكسجين!`,
+      )
+      .catch((err) => console.error('WhatsApp error:', err));
 
     return {
-      message: 'OTP sent successfully',
+      message: 'OTP generated successfully',
     };
   }
 
