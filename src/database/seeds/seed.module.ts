@@ -8,13 +8,16 @@ import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { Doctor } from 'src/doctors/entities/doctor.entity';
 import { Patient } from 'src/patients/entities/patient.entity';
 import { Secretary } from 'src/secretaries/entities/secretary.entity';
+import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.entity';
+import { Appointment } from 'src/appointments/entities/appointment.entity';
 
 import { AdminSeed } from './admin.seed';
 import { DoctorsSeed } from './doctors.seed';
 import { SpecialtiesSeed } from './specialties.seed';
 import { PatientsSeed } from './patients.seed';
 import { SecretariesSeed } from './secretaries.seed';
-import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.entity';
+import { DemoDoctorSeed } from './demo-doctor.seed';
+import { AppointmentsSeed } from './appointments.seed';
 
 @Module({
   imports: [
@@ -25,6 +28,7 @@ import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.en
       Patient,
       Secretary,
       DoctorSchedule,
+      Appointment,
     ]),
   ],
   controllers: [SeedController],
@@ -34,8 +38,9 @@ import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.en
     SpecialtiesSeed,
     PatientsSeed,
     SecretariesSeed,
+    DemoDoctorSeed,
+    AppointmentsSeed,
     SeedService,
-    DoctorSchedule,
   ],
   exports: [
     AdminSeed,
@@ -43,8 +48,9 @@ import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.en
     SpecialtiesSeed,
     PatientsSeed,
     SecretariesSeed,
+    DemoDoctorSeed,
+    AppointmentsSeed,
     SeedService,
-    DoctorSchedule,
   ],
 })
 export class SeedModule {}

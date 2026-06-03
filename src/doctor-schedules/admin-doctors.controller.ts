@@ -1,0 +1,26 @@
+import { Body, Controller, Param, Put, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { UserRole } from 'src/users/entities/user.entity';
+import { DoctorSchedulesService } from './doctor-schedules.service';
+import { UpdateDoctorWorkingHoursDto } from './dto/update-doctor-working-hours.dto';
+
+@ApiBearerAuth()
+@Controller('admin/doctors')
+@Roles(UserRole.ADMIN)
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class AdminDoctorsController {
+  constructor(
+    private readonly doctorSchedulesService: DoctorSchedulesService,
+  ) {}
+
+  @Put('working-hours/:id')
+  updateWorkingHours(
+    @Param('id') id: string,
+    @Body() dto: UpdateDoctorWorkingHoursDto,
+  ) {
+    return this.doctorSchedulesService.updateWorkingHours(+id, dto);
+  }
+}

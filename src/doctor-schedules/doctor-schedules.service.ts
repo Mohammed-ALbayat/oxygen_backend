@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateDoctorScheduleDto } from './dto/create-doctor-schedule.dto';
+import { UpdateDoctorWorkingHoursDto } from './dto/update-doctor-working-hours.dto';
 import { Repository } from 'typeorm';
 import { Doctor } from 'src/doctors/entities/doctor.entity';
 import { DoctorSchedule } from './entities/doctor-schedule.entity';
-import { NotFoundException, ConflictException } from '@nestjs/common';
 
 @Injectable()
 export class DoctorSchedulesService {
@@ -15,39 +14,37 @@ export class DoctorSchedulesService {
     private doctorRepository: Repository<Doctor>,
   ) {}
 
-  async create(dto: CreateDoctorScheduleDto) {
+  async findByDoctorId(doctorId: number) {
     const doctor = await this.doctorRepository.findOne({
-      where: { id: dto.doctor_id },
+      where: { id: doctorId },
     });
 
     if (!doctor) {
       throw new NotFoundException('الطبيب غير موجود');
     }
 
-    const existing = await this.scheduleRepository.findOne({
-      where: {
-        doctor: { id: dto.doctor_id },
-        // day_of_week: dto.day_of_week,
-      },
+    const schedules = await this.scheduleRepository.find({
+      where: { doctor: { id: doctorId } },
+      order: { day_of_week: 'ASC', start_time: 'ASC' },
     });
 
-    if (existing) {
-      throw new ConflictException('يوجد دوام مسبق لهذا اليوم');
-    }
-
-    const schedule = this.scheduleRepository.create({
-      doctor,
-      day_of_week: dto.day_of_week,
-      start_time: dto.start_time,
-      end_time: dto.end_time,
-      slot_duration: dto.slot_duration,
-      is_active: dto.is_active,
-    });
-
-    return await this.scheduleRepository.save(schedule);
+    return {
+      doctor_id: doctorId,
+      schedules: schedules.map((schedule) => ({
+        id: schedule.id,
+        day_of_week: schedule.day_of_week,
+        start_time: schedule.start_time,
+        end_time: schedule.end_time,
+        slot_duration: schedule.slot_duration,
+        is_active: schedule.is_active,
+      })),
+    };
   }
 
-  async createMultiple(doctorId: number, schedules: CreateDoctorScheduleDto[]) {
+  async updateWorkingHours(
+    doctorId: number,
+    dto: UpdateDoctorWorkingHoursDto,
+  ) {
     const doctor = await this.doctorRepository.findOne({
       where: { id: doctorId },
     });
@@ -58,36 +55,29 @@ export class DoctorSchedulesService {
 
     const results: DoctorSchedule[] = [];
 
-    for (const scheduleDto of schedules) {
-      // شوف إذا اليوم موجود مسبقاً
+    for (const entry of dto.schedules) {
       let schedule = await this.scheduleRepository.findOne({
         where: {
           doctor: { id: doctorId },
-          day_of_week: scheduleDto.day_of_week,
+          day_of_week: entry.day_of_week,
         },
       });
 
-      // إذا موجود → update
       if (schedule) {
-        schedule.start_time = scheduleDto.start_time;
-        schedule.end_time = scheduleDto.end_time;
-        schedule.slot_duration = scheduleDto.slot_duration;
-        schedule.is_active = scheduleDto.is_active;
-
+        schedule.start_time = entry.start_time;
+        schedule.end_time = entry.end_time;
+        schedule.slot_duration = entry.slot_duration;
+        schedule.is_active = entry.is_active;
         await this.scheduleRepository.save(schedule);
-      }
-
-      // إذا غير موجود → create
-      else {
+      } else {
         schedule = this.scheduleRepository.create({
           doctor,
-          day_of_week: scheduleDto.day_of_week,
-          start_time: scheduleDto.start_time,
-          end_time: scheduleDto.end_time,
-          slot_duration: scheduleDto.slot_duration,
-          is_active: scheduleDto.is_active,
+          day_of_week: entry.day_of_week,
+          start_time: entry.start_time,
+          end_time: entry.end_time,
+          slot_duration: entry.slot_duration,
+          is_active: entry.is_active,
         });
-
         await this.scheduleRepository.save(schedule);
       }
 

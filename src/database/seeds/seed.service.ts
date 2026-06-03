@@ -5,6 +5,8 @@ import { DoctorsSeed } from './doctors.seed';
 import { PatientsSeed } from './patients.seed';
 import { SecretariesSeed } from './secretaries.seed';
 import { SpecialtiesSeed } from './specialties.seed';
+import { DemoDoctorSeed } from './demo-doctor.seed';
+import { AppointmentsSeed } from './appointments.seed';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -15,6 +17,7 @@ import { Patient } from 'src/patients/entities/patient.entity';
 import { Secretary } from 'src/secretaries/entities/secretary.entity';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.entity';
+import { Appointment } from 'src/appointments/entities/appointment.entity';
 import { DataSource } from 'typeorm';
 @Injectable()
 export class SeedService {
@@ -24,8 +27,13 @@ export class SeedService {
     private patientsSeed: PatientsSeed,
     private secretariesSeed: SecretariesSeed,
     private specialtiesSeed: SpecialtiesSeed,
+    private demoDoctorSeed: DemoDoctorSeed,
+    private appointmentsSeed: AppointmentsSeed,
 
     private dataSource: DataSource,
+
+    @InjectRepository(Appointment)
+    private appointmentRepository: Repository<Appointment>,
 
     @InjectRepository(DoctorSchedule)
     private scheduleRepository: Repository<DoctorSchedule>,
@@ -49,6 +57,7 @@ export class SeedService {
   async reset() {
     await this.dataSource.query('SET FOREIGN_KEY_CHECKS = 0');
     // 1. امسح كل الجداول (بالترتيب الصحيح بسبب العلاقات)
+    await this.appointmentRepository.clear();
     await this.scheduleRepository.clear();
     await this.doctorRepository.clear();
     await this.patientRepository.clear();
@@ -65,6 +74,8 @@ export class SeedService {
     await this.doctorsSeed.seed();
     await this.patientsSeed.seed();
     await this.secretariesSeed.seed();
+    await this.demoDoctorSeed.seed();
+    await this.appointmentsSeed.seed();
 
     console.log('DB reseeded');
   }
