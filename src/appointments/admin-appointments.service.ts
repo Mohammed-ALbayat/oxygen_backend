@@ -5,16 +5,9 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {
-  Appointment,
-  AppointmentStatus,
-} from './entities/appointment.entity';
+import { Appointment, AppointmentStatus } from './entities/appointment.entity';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { AdminAppointmentListItemDto } from './dto/admin-appointment-list-item.dto';
-
-type AppointmentWithDepartment = Appointment & {
-  department?: Specialty | null;
-};
 
 @Injectable()
 export class AdminAppointmentsService {
@@ -30,19 +23,12 @@ export class AdminAppointmentsService {
       .leftJoinAndSelect('patient.user', 'patientUser')
       .leftJoinAndSelect('appointment.doctor', 'doctor')
       .leftJoinAndSelect('doctor.user', 'doctorUser')
-      .leftJoinAndMapOne(
-        'appointment.department',
-        Specialty,
-        'department',
-        'department.id = appointment.department_id',
-      )
+      .leftJoinAndSelect('appointment.department', 'department')
       .orderBy('appointment.appointment_date', 'DESC')
       .addOrderBy('appointment.start_time', 'DESC')
       .getMany();
 
-    return (appointments as AppointmentWithDepartment[]).map((appointment) =>
-      this.toListItem(appointment),
-    );
+    return appointments.map((appointment) => this.toListItem(appointment));
   }
 
   async cancel(id: number) {
@@ -67,9 +53,7 @@ export class AdminAppointmentsService {
     };
   }
 
-  private toListItem(
-    appointment: AppointmentWithDepartment,
-  ): AdminAppointmentListItemDto {
+  private toListItem(appointment: Appointment): AdminAppointmentListItemDto {
     const appointmentDate =
       appointment.appointment_date instanceof Date
         ? appointment.appointment_date.toISOString().slice(0, 10)
@@ -77,7 +61,7 @@ export class AdminAppointmentsService {
 
     return {
       id: appointment.id,
-      department_id: appointment.department_id,
+      department_id: appointment.department?.id ?? null,
       department_name: appointment.department?.title ?? null,
       appointment_date: appointmentDate,
       start_time: appointment.start_time,

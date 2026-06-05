@@ -19,6 +19,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Specialty } from 'src/specialty/entities/specialty.entity';
 
 export enum AppointmentStatus {
   PENDING = 'pending',
@@ -49,9 +50,9 @@ export class Appointment {
   @JoinColumn({ name: 'doctor_id' })
   doctor: Doctor;
 
-  @Column('int')
-  @IsInt()
-  department_id: number;
+  @ManyToOne(() => Specialty)
+  @JoinColumn({ name: 'department_id' })
+  department: Specialty;
 
   @Column({ type: 'date' })
   @IsDateString()

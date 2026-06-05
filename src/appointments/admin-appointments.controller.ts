@@ -10,7 +10,7 @@ import { AdminAppointmentListItemDto } from './dto/admin-appointment-list-item.d
 
 @ApiBearerAuth()
 @Controller('admin/appointments')
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.ADMIN, UserRole.SECRETARY)
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class AdminAppointmentsController {
   constructor(
@@ -25,6 +25,7 @@ export class AdminAppointmentsController {
 
   @Delete('cancel/:id')
   @ApiOkResponse({ type: MessageDto })
+  @Roles(UserRole.ADMIN, UserRole.SECRETARY)
   cancel(@Param('id') id: string) {
     return this.adminAppointmentsService.cancel(+id);
   }
