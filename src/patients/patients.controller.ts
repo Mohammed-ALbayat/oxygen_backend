@@ -43,44 +43,4 @@ export class PatientsController {
   updateMe(@CurrentUser() user: User, @Body() dto: UpdateMeDto) {
     return this.patientsService.updateMe(user, dto);
   }
-
-  @Post()
-  @Roles(UserRole.ADMIN, UserRole.SECRETARY)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  create(@Body() createPatientDto: CreatePatientDto) {
-    return this.patientsService.createPatient(createPatientDto);
-  }
-
-  @Post('profile/:userId')
-  @Roles(UserRole.ADMIN, UserRole.SECRETARY, UserRole.PATIENT)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  createProfile(
-    @Body() createPatientProfileDto: CreatePatientProfileDto,
-    @Param('userId') userId: number,
-  ) {
-    return this.patientsService.createPatientProfile(
-      userId,
-      createPatientProfileDto,
-    );
-  }
-
-  @Patch(':id')
-  @Roles(UserRole.ADMIN, UserRole.SECRETARY, UserRole.PATIENT)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  update(@Param('id') id: string, @Body() updatePatientDto: UpdatePatientDto) {
-    return this.patientsService.updatePatient(+id, updatePatientDto);
-  }
-
-  @Patch('profile/:userId')
-  @Roles(UserRole.ADMIN, UserRole.SECRETARY, UserRole.PATIENT)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  updateProfile(
-    @Body() updatePatientProfileDto: UpdatePatientProfileDto,
-    @Param('userId') userId: number,
-  ) {
-    return this.patientsService.updatePatientProfile(
-      userId,
-      updatePatientProfileDto,
-    );
-  }
 }
