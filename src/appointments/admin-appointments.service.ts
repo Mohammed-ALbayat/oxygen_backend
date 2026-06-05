@@ -161,7 +161,11 @@ export class AdminAppointmentsService {
 
     const slots = allSlots.map((slot) => ({
       time: slot,
-      isBooked: bookedSlots.includes(slot),
+      isBooked:
+        bookedSlots.includes(slot) &&
+        !appointments
+          .find((a) => a.start_time.slice(0, 5) === slot)
+          ?.status.includes(AppointmentStatus.CANCELLED),
     }));
 
     return {
@@ -177,6 +181,11 @@ export class AdminAppointmentsService {
 
     const targetDate = date;
     const dayEnum = getDayEnum(new Date(date));
+
+    const today = new Date();
+    if (new Date(targetDate) < new Date(today.toDateString())) {
+      throw new BadRequestException('Cannot book an appointment in the past');
+    }
 
     const doctor = await this.doctorRepository.findOne({
       where: { id: doctorId },
@@ -209,11 +218,16 @@ export class AdminAppointmentsService {
       throw new BadRequestException('Invalid time slot');
     }
 
+    // التحقق من وجود تعارض في مواعيد المريض والطبيب بدون اعتبار المواعيد الملغاة
+
     const patientConflict = await this.appointmentRepository
       .createQueryBuilder('a')
       .where('a.patient_id = :patientId', { patientId })
       .andWhere('a.appointment_date = :date', { date: targetDate })
       .andWhere('a.start_time = :start_time', { start_time })
+      .andWhere('a.status != :cancelledStatus', {
+        cancelledStatus: AppointmentStatus.CANCELLED,
+      })
       .getOne();
 
     if (patientConflict) {
@@ -227,6 +241,9 @@ export class AdminAppointmentsService {
       .where('a.doctor_id = :doctorId', { doctorId })
       .andWhere('a.appointment_date = :date', { date: targetDate })
       .andWhere('a.start_time = :start_time', { start_time })
+      .andWhere('a.status != :cancelledStatus', {
+        cancelledStatus: AppointmentStatus.CANCELLED,
+      })
       .getOne();
 
     if (doctorConflict) {
