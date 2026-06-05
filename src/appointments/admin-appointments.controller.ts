@@ -29,4 +29,10 @@ export class AdminAppointmentsController {
   cancel(@Param('id') id: string) {
     return this.adminAppointmentsService.cancel(+id);
   }
+
+  @Get('departments-with-doctors')
+  @ApiOkResponse({ type: MessageDto })
+  getDepartmentsWithDoctors() {
+    return this.adminAppointmentsService.getDepartmentsWithDoctors();
+  }
 }

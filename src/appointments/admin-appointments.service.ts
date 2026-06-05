@@ -8,12 +8,15 @@ import { Repository } from 'typeorm';
 import { Appointment, AppointmentStatus } from './entities/appointment.entity';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { AdminAppointmentListItemDto } from './dto/admin-appointment-list-item.dto';
+import { DepartmentDoctorsDto } from './dto/department-doctors.dto';
 
 @Injectable()
 export class AdminAppointmentsService {
   constructor(
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
+    @InjectRepository(Specialty)
+    private specialtyRepository: Repository<Specialty>,
   ) {}
 
   async findAll(): Promise<AdminAppointmentListItemDto[]> {
@@ -75,5 +78,37 @@ export class AdminAppointmentsService {
       patient_name: appointment.patient.user.full_name,
       cancellation_reason_id: appointment.cancellation_reason_id,
     };
+  }
+
+  async getDepartmentsWithDoctors(): Promise<DepartmentDoctorsDto[]> {
+    const specialties = await this.specialtyRepository
+      .createQueryBuilder('specialty')
+      .leftJoin('specialty.doctors', 'doctor')
+      .leftJoin('doctor.user', 'user')
+      .leftJoin('doctor.schedules', 'schedule')
+      .addSelect([
+        'specialty.id',
+        'specialty.title',
+        'doctor.id',
+        'user.full_name',
+        'schedule.day_of_week',
+        'schedule.start_time',
+        'schedule.end_time',
+      ])
+      .getMany();
+
+    return specialties.map((specialty) => ({
+      id: specialty.id,
+      name: specialty.title,
+      doctors: (specialty.doctors || []).map((doctor) => ({
+        id: doctor.id,
+        name: doctor.user?.full_name,
+        schedules: (doctor.schedules || []).map((s) => ({
+          day_of_week: s.day_of_week,
+          start_time: s.start_time,
+          end_time: s.end_time,
+        })),
+      })),
+    }));
   }
 }
