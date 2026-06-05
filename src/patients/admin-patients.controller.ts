@@ -16,6 +16,7 @@ import { CreatePatientDto } from './dto/create-patient.dto';
 import { CreatePatientProfileDto } from './dto/create-profile-patient.dto';
 import { UpdatePatientProfileDto } from './dto/update-profile-patient.dto';
 import { AdminPatientsService } from './admin-patients.service';
+import { ApiEndpoint } from 'src/common/swagger/api-endpoint.decorator';
 
 @ApiBearerAuth()
 @Controller('admin/patients')
@@ -23,6 +24,10 @@ export class AdminPatientsController {
   constructor(private readonly adminPatientsService: AdminPatientsService) {}
 
   @Post()
+  @ApiEndpoint('Create a new patient account', [
+    UserRole.ADMIN,
+    UserRole.SECRETARY,
+  ])
   @Roles(UserRole.ADMIN, UserRole.SECRETARY)
   @UseGuards(JwtAuthGuard, RolesGuard)
   create(@Body() createPatientDto: CreatePatientDto) {
@@ -30,6 +35,10 @@ export class AdminPatientsController {
   }
 
   @Post('profile/:userId')
+  @ApiEndpoint('Create a new patient profile', [
+    UserRole.ADMIN,
+    UserRole.SECRETARY,
+  ])
   @Roles(UserRole.ADMIN, UserRole.SECRETARY)
   @UseGuards(JwtAuthGuard, RolesGuard)
   createProfile(
