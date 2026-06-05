@@ -48,7 +48,6 @@ export class DoctorsSeed {
     for (let i = 0; i < 10; i++) {
       const user = this.userRepository.create({
         full_name: `Doctor ${i}`,
-        username: `doctor${i}`,
         phone: `099999998${i}`,
         password: hashedPassword,
         role: UserRole.DOCTOR,

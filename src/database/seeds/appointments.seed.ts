@@ -13,13 +13,8 @@ import {
   AppointmentStatus,
   PaymentStatus,
 } from 'src/appointments/entities/appointment.entity';
-import { DEMO_DOCTOR_USERNAME } from './demo-doctor.seed';
 
-const DEMO_PATIENT_USERNAMES = [
-  'appt_patient_0',
-  'appt_patient_1',
-  'appt_patient_2',
-] as const;
+const DEMO_DOCTOR_PHONE = '0988888800';
 
 const DEMO_APPOINTMENT_PHONES = ['0988888801', '0988888802', '0988888803'];
 
@@ -68,7 +63,7 @@ export class AppointmentsSeed {
 
   async seed() {
     const doctor = await this.doctorRepository.findOne({
-      where: { user: { username: DEMO_DOCTOR_USERNAME } },
+      where: { user: { phone: DEMO_DOCTOR_PHONE } },
       relations: ['user', 'specialty'],
     });
 
@@ -124,17 +119,15 @@ export class AppointmentsSeed {
   private async ensureDemoPatients(): Promise<Patient[]> {
     const patients: Patient[] = [];
 
-    for (let i = 0; i < DEMO_PATIENT_USERNAMES.length; i++) {
-      const username = DEMO_PATIENT_USERNAMES[i];
+    for (let i = 0; i < DEMO_APPOINTMENT_PHONES.length; i++) {
       let patient = await this.patientRepository.findOne({
-        where: { user: { username } },
+        where: { user: { phone: DEMO_APPOINTMENT_PHONES[i] } },
         relations: ['user'],
       });
 
       if (!patient) {
         const user = this.userRepository.create({
           full_name: `Appointment Patient ${i}`,
-          username,
           phone: DEMO_APPOINTMENT_PHONES[i],
           role: UserRole.PATIENT,
         });

@@ -7,10 +7,6 @@ export class UpdateSecretaryDto {
 
   @IsOptional()
   @IsString()
-  username?: string;
-
-  @IsOptional()
-  @IsString()
   password?: string;
 
   @IsOptional()

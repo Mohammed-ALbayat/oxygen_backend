@@ -7,7 +7,6 @@ import { NotFoundException } from '@nestjs/common';
 import { UpdateDoctorFullDto } from './dto/update-doctor.dto';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { User, UserRole } from 'src/users/entities/user.entity';
-import { BadRequestException } from '@nestjs/common';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 
 @Injectable()
@@ -36,7 +35,6 @@ export class DoctorsService {
     }
     const user = this.userRepository.create({
       full_name: dto.full_name,
-      username: dto.username,
       phone: dto.phone,
       password: hashedPassword,
       role: UserRole.DOCTOR,
@@ -72,9 +70,6 @@ export class DoctorsService {
     if (updateData.full_name !== undefined) {
       doctor.user.full_name = updateData.full_name;
     }
-    if (updateData.username !== undefined) {
-      doctor.user.username = updateData.username;
-    }
 
     if (updateData.specialty_id) {
       const specialty = await this.specialtyRepository.findOne({
@@ -104,71 +99,5 @@ export class DoctorsService {
     }
 
     return await this.doctorRepository.save(doctor);
-  }
-
-  async sendOTP(phone: string) {
-    const user = await this.userRepository.findOne({
-      where: { phone: phone, role: UserRole.DOCTOR },
-    });
-
-    if (!user) {
-      throw new NotFoundException('Doctor not found');
-    }
-
-    user.is_verified = false;
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    user.otp_code = otp;
-    user.otp_expires_at = new Date(Date.now() + 5 * 60 * 1000); // 5 min
-
-    await this.userRepository.save(user);
-
-    // إرسال واتساب بعدين بس تزبط معنا
-    console.log('OTP:', otp);
-
-    return {
-      message: 'OTP sent successfully',
-    };
-  }
-
-  async verifyOtp(phone: string, otp: string) {
-    const user = await this.userRepository.findOne({
-      where: { phone, role: UserRole.DOCTOR },
-    });
-
-    if (!user) {
-      throw new NotFoundException('Doctor not found');
-    }
-
-    if (otp !== '123456') {
-      throw new BadRequestException('Invalid OTP');
-    }
-
-    // if (user.otp_expires_at === null || user.otp_expires_at < new Date()) {
-    //   throw new BadRequestException('OTP expired');
-    // }
-
-    user.is_verified = true;
-    await this.userRepository.save(user);
-    return {
-      message: 'OTP verified',
-    };
-  }
-
-  async resetPassword(phone: string, newPassword: string) {
-    const user = await this.userRepository.findOne({
-      where: { phone, role: UserRole.DOCTOR },
-    });
-
-    if (!user) {
-      throw new NotFoundException('Doctor not found');
-    }
-    user.password = await bcrypt.hash(newPassword, 10);
-    user.otp_code = null;
-    user.otp_expires_at = null;
-    await this.userRepository.save(user);
-    return {
-      message: 'Password updated successfully',
-    };
   }
 }

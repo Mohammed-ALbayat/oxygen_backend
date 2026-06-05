@@ -30,7 +30,6 @@ export class AdminSeed {
 
     const admin = this.userRepository.create({
       full_name: 'System Admin',
-      username: 'admin',
       phone: '0999999999',
       password: hashedPassword,
       role: UserRole.ADMIN,

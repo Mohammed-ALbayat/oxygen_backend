@@ -10,8 +10,6 @@ import {
   DoctorSchedule,
 } from 'src/doctor-schedules/entities/doctor-schedule.entity';
 
-export const DEMO_DOCTOR_USERNAME = 'demo_doctor';
-
 const DEMO_DOCTOR_PHONE = '0988888800';
 const DEMO_SCHEDULE_DAYS: {
   day_of_week: DayOfWeek;
@@ -58,7 +56,7 @@ export class DemoDoctorSeed {
     }
 
     let doctor = await this.doctorRepository.findOne({
-      where: { user: { username: DEMO_DOCTOR_USERNAME } },
+      where: { user: { phone: DEMO_DOCTOR_PHONE } },
       relations: ['user', 'schedules'],
     });
 
@@ -67,7 +65,6 @@ export class DemoDoctorSeed {
 
       const user = this.userRepository.create({
         full_name: 'Demo Doctor',
-        username: DEMO_DOCTOR_USERNAME,
         phone: DEMO_DOCTOR_PHONE,
         password: hashedPassword,
         role: UserRole.DOCTOR,

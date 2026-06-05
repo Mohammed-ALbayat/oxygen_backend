@@ -31,7 +31,6 @@ export class PatientsSeed {
       // إنشاء user
       const user = this.userRepository.create({
         full_name: `Patient ${i}`,
-        username: `patient${i}`,
         phone: `099999997${i}`,
         role: UserRole.PATIENT,
       });

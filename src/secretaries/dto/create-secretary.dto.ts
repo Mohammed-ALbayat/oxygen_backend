@@ -9,10 +9,6 @@ export class CreateSecretaryDto {
   @IsNotEmpty()
   phone: string;
 
-  @IsString()
-  @IsNotEmpty()
-  username: string;
-
   @IsOptional()
   @IsString()
   password?: string;

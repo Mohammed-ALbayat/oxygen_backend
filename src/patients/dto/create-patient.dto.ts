@@ -8,8 +8,4 @@ export class CreatePatientDto {
   @IsString()
   @IsNotEmpty()
   phone: string;
-
-  @IsOptional()
-  @IsString()
-  username?: string;
 }

@@ -31,7 +31,6 @@ export class SecretariesSeed {
       // إنشاء user
       const user = this.userRepository.create({
         full_name: `Secretary ${i}`,
-        username: `secretary${i}`,
         phone: `099999996${i}`,
         password: hashedPassword,
         role: UserRole.SECRETARY,

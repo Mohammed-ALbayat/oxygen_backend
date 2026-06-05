@@ -28,7 +28,7 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({nullable: true})
   full_name: string;
 
   @Column({
@@ -38,9 +38,6 @@ export class User {
     message: 'رقم الهاتف يجب أن يبدأ بـ 09 ويتكون من 10 أرقام',
   })
   phone: string;
-
-  @Column()
-  username: string;
 
   @Column({ nullable: true })
   password: string;
@@ -58,17 +55,6 @@ export class User {
     default: UserStatus.ACTIVE,
   })
   status: UserStatus;
-
-  @Column({ type: 'varchar', nullable: true })
-  otp_code: string | null;
-
-  @Column({ type: 'datetime', nullable: true })
-  otp_expires_at: Date | null;
-
-  @Column({
-    default: false,
-  })
-  is_verified: boolean;
 
   @Column({ default: 0 })
   token_version: number;

@@ -5,7 +5,7 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
+  Put,
 } from '@nestjs/common';
 import { PatientsService } from './patients.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
@@ -18,17 +18,30 @@ import { UseGuards } from '@nestjs/common';
 import { Roles } from 'src/auth/roles.decorator';
 import { UserRole } from 'src/users/entities/user.entity';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
-import { MessageDto } from 'src/common/dto/message.dto';
-import { PhonenumberDto } from 'src/common/dto/phonenumber.dto';
-import { PhonenumberOtpDto } from 'src/common/dto/phonenumber-otp.dto';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { User } from 'src/users/entities/user.entity';
+import { PatientMeResponseDto } from './dto/patient-me-response.dto';
+import { UpdateMeDto } from './dto/update-me.dto';
 
+@ApiBearerAuth()
 @Controller('patients')
 export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 
-  @Post('register')
-  register(@Body() createPatientDto: CreatePatientDto) {
-    return this.patientsService.registerPatient(createPatientDto);
+  @Get('me')
+  @Roles(UserRole.PATIENT)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOkResponse({ type: PatientMeResponseDto })
+  getMe(@CurrentUser() user: User) {
+    return this.patientsService.getMe(user);
+  }
+
+  @Put('me')
+  @Roles(UserRole.PATIENT)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOkResponse({ type: PatientMeResponseDto })
+  updateMe(@CurrentUser() user: User, @Body() dto: UpdateMeDto) {
+    return this.patientsService.updateMe(user, dto);
   }
 
   @Post()
@@ -69,32 +82,5 @@ export class PatientsController {
       userId,
       updatePatientProfileDto,
     );
-  }
-
-  @Post('send-otp')
-  @ApiOkResponse({
-    type: MessageDto,
-  })
-  sendOtp(@Body() phone: PhonenumberDto) {
-    return this.patientsService.sendOtp(phone.phonenumber);
-  }
-
-  @Post('verify-otp')
-  @ApiOkResponse({
-    type: MessageDto,
-  })
-  verifyOtp(@Body() phonenumberOtp: PhonenumberOtpDto) {
-    return this.patientsService.verifyOtp(
-      phonenumberOtp.phonenumber,
-      phonenumberOtp.otp,
-    );
-  }
-
-  @Post('login')
-  @ApiOkResponse({
-    type: MessageDto,
-  })
-  login(@Body() phone: PhonenumberDto) {
-    return this.patientsService.loginPatient(phone.phonenumber);
   }
 }
