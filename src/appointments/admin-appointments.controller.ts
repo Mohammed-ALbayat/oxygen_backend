@@ -1,4 +1,12 @@
-import { Controller, Delete, Get, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  UseGuards,
+  Post,
+  Body,
+} from '@nestjs/common';
 import { AdminAppointmentsService } from './admin-appointments.service';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -7,6 +15,7 @@ import { Roles } from 'src/auth/roles.decorator';
 import { UserRole } from 'src/users/entities/user.entity';
 import { MessageDto } from 'src/common/dto/message.dto';
 import { AdminAppointmentListItemDto } from './dto/admin-appointment-list-item.dto';
+import { CreateAppointmentDto } from './dto/create-appointment.dto';
 
 @ApiBearerAuth()
 @Controller('admin/appointments')
@@ -34,5 +43,21 @@ export class AdminAppointmentsController {
   @ApiOkResponse({ type: MessageDto })
   getDepartmentsWithDoctors() {
     return this.adminAppointmentsService.getDepartmentsWithDoctors();
+  }
+
+  @Get('doctor-slots/:doctorId/:date')
+  @ApiOkResponse({ type: MessageDto })
+  getDoctorSlots(
+    @Param('doctorId') doctorId: string,
+    @Param('date') date: string,
+  ) {
+    return this.adminAppointmentsService.getDoctorSlots(+doctorId, date);
+  }
+
+  @Post('book')
+  @ApiOkResponse({ type: MessageDto })
+  @Roles(UserRole.ADMIN, UserRole.SECRETARY)
+  adminBookAppointment(@Body() createDto: CreateAppointmentDto) {
+    return this.adminAppointmentsService.adminBookAppointment(createDto);
   }
 }
