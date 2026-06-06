@@ -5,6 +5,7 @@ import {
   Param,
   UseGuards,
   Post,
+  Patch,
   Body,
 } from '@nestjs/common';
 import { AdminAppointmentsService } from './admin-appointments.service';
@@ -16,6 +17,7 @@ import { UserRole } from 'src/users/entities/user.entity';
 import { MessageDto } from 'src/common/dto/message.dto';
 import { AdminAppointmentListItemDto } from './dto/admin-appointment-list-item.dto';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 
 @ApiBearerAuth()
 @Controller('admin/appointments')
@@ -59,5 +61,18 @@ export class AdminAppointmentsController {
   @Roles(UserRole.ADMIN, UserRole.SECRETARY)
   adminBookAppointment(@Body() createDto: CreateAppointmentDto) {
     return this.adminAppointmentsService.adminBookAppointment(createDto);
+  }
+
+  @Patch('update/:id')
+  @ApiOkResponse({ type: MessageDto })
+  @Roles(UserRole.ADMIN, UserRole.SECRETARY)
+  updateAppointment(
+    @Param('id') appointmentId: string,
+    @Body() dto: UpdateAppointmentDto,
+  ) {
+    return this.adminAppointmentsService.adminUpdateAppointment(
+      +appointmentId,
+      dto,
+    );
   }
 }
