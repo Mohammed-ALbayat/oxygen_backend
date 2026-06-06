@@ -20,6 +20,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
+import { CancellationReason } from './cancellation.entity';
 
 export enum AppointmentStatus {
   PENDING = 'pending',
@@ -97,9 +98,9 @@ export class Appointment {
 
   @Column('int', { nullable: true })
   @IsOptional()
-  @IsInt()
-  cancellation_reason_id: number | null;
-
+  @ManyToOne(() => CancellationReason, { nullable: true })
+  @JoinColumn({ name: 'cancellation_reason_id' })
+  cancellationReason: CancellationReason | null;
   // @Column('text', { nullable: true })
   // @IsOptional()
   // @IsString()

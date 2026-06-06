@@ -10,10 +10,17 @@ import { AppointmentsController } from './appointments.controller';
 import { AppointmentsService } from './appointments.service';
 import { PatientAppointmentsController } from './patient-appointments.controller';
 import { PatientAppointmentsService } from './patient-appointments.service';
+import { CancellationReason } from './entities/cancellation.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Appointment, Specialty, DoctorSchedule, Doctor]),
+    TypeOrmModule.forFeature([
+      Appointment,
+      Specialty,
+      DoctorSchedule,
+      Doctor,
+      CancellationReason,
+    ]),
   ],
   controllers: [
     AdminAppointmentsController,

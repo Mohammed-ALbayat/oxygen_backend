@@ -92,7 +92,7 @@ export class AdminAppointmentsService {
       doctor_name: appointment.doctor.user.full_name,
       patient_id: appointment.patient.id,
       patient_name: appointment.patient.user.full_name,
-      cancellation_reason_id: appointment.cancellation_reason_id,
+      cancellation_reason_id: appointment.cancellationReason?.id ?? null,
     };
   }
 

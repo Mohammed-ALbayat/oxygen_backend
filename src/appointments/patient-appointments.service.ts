@@ -9,6 +9,8 @@ import { PatientUpdateAppointmentDto } from './dto/patient-update-appointment.dt
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { calculateEndTime, getDayEnum } from './doctor-schedule.utils';
 import { generateTimeSlots } from './doctor-schedule.utils';
+import { CancelAppointmentDto } from './dto/patient-cancellation.dto';
+import { CancellationReason } from './entities/cancellation.entity';
 
 @Injectable()
 export class PatientAppointmentsService {
@@ -21,6 +23,8 @@ export class PatientAppointmentsService {
     private scheduleRepository: Repository<DoctorSchedule>,
     @InjectRepository(Doctor)
     private doctorRepository: Repository<Doctor>,
+    @InjectRepository(CancellationReason)
+    private cancellationReasonRepository: Repository<CancellationReason>,
   ) {}
 
   async patientUpdateAppointment(
@@ -189,6 +193,111 @@ export class PatientAppointmentsService {
 
     return {
       message: 'Appointment rescheduled successfully',
+      appointment,
+    };
+  }
+
+  // async patientCancelAppointment(
+  //   patientId: number,
+  //   appointmentId: number,
+  //   dto: CancelAppointmentDto,
+  // ) {
+  //   const appointment = await this.appointmentRepository.findOne({
+  //     where: {
+  //       id: appointmentId,
+  //       patient: { id: patientId },
+  //     },
+  //     relations: ['patient', 'doctor', 'cancellationReason'],
+  //   });
+
+  //   if (!appointment) {
+  //     throw new NotFoundException('Appointment not found');
+  //   }
+
+  //   if (appointment.status === AppointmentStatus.CANCELLED) {
+  //     throw new BadRequestException('Appointment already cancelled');
+  //   }
+
+  //   if (
+  //     appointment.status === AppointmentStatus.START ||
+  //     appointment.status === AppointmentStatus.COMPLETE
+  //   ) {
+  //     throw new BadRequestException(
+  //       'Cannot cancel started or completed appointment',
+  //     );
+  //   }
+
+  //   let reason: CancellationReason | null = null;
+
+  //   const appointmentDateTime = new Date(
+  //     `${appointment.appointment_date}T${appointment.start_time}`,
+  //   );
+
+  //   const now = new Date();
+
+  //   const hoursDiff =
+  //     (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+  //   if (hoursDiff < 2) {
+  //     throw new BadRequestException(
+  //       'Cannot cancel appointment within 2 hours of the appointment',
+  //     );
+  //   }
+
+  //   appointment.status = AppointmentStatus.CANCELLED;
+
+  //   appointment.cancellationReason = reason;
+
+  //   await this.appointmentRepository.save(appointment);
+
+  //   return {
+  //     message: 'Appointment cancelled successfully',
+  //     appointment,
+  //   };
+  // }
+
+  async patientCancelAppointment(
+    patientId: number,
+    appointmentId: number,
+    dto: CancelAppointmentDto,
+  ) {
+    console.log('Cancel DTO:', dto); // Debug log to check the incoming DTO
+    const appointment = await this.appointmentRepository.findOne({
+      where: {
+        id: appointmentId,
+        patient: { id: patientId },
+      },
+      relations: ['patient', 'cancellationReason'],
+    });
+
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found');
+    }
+
+    if (appointment.status === AppointmentStatus.CANCELLED) {
+      throw new BadRequestException('Appointment already cancelled');
+    }
+
+    if (
+      appointment.status === AppointmentStatus.START ||
+      appointment.status === AppointmentStatus.COMPLETE
+    ) {
+      throw new BadRequestException('Cannot cancel this appointment');
+    }
+
+    const newReason = this.cancellationReasonRepository.create({
+      reason: dto.reason,
+    });
+
+    await this.cancellationReasonRepository.save(newReason);
+
+    appointment.cancellationReason = newReason;
+    appointment.status = AppointmentStatus.CANCELLED;
+
+    await this.appointmentRepository.save(appointment);
+
+    return {
+      message: 'Appointment cancelled successfully',
       appointment,
     };
   }
