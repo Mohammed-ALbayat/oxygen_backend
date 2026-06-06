@@ -374,4 +374,26 @@ export class AdminAppointmentsService {
       appointment,
     };
   }
+
+  async updateAppointmentStatus(id: number, status: AppointmentStatus) {
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id },
+    });
+
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found');
+    }
+    // السماح فقط للحالات الأساسية وعدم السماح بكلمات غيرهم
+    if (!Object.values(AppointmentStatus).includes(status)) {
+      throw new BadRequestException('Invalid appointment status');
+    }
+
+    appointment.status = status;
+    await this.appointmentRepository.save(appointment);
+
+    return {
+      message: 'Appointment status updated successfully',
+      appointment,
+    };
+  }
 }

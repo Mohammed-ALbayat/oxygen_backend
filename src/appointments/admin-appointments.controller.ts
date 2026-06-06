@@ -18,6 +18,7 @@ import { MessageDto } from 'src/common/dto/message.dto';
 import { AdminAppointmentListItemDto } from './dto/admin-appointment-list-item.dto';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { AppointmentStatus } from './entities/appointment.entity';
 
 @ApiBearerAuth()
 @Controller('admin/appointments')
@@ -74,5 +75,15 @@ export class AdminAppointmentsController {
       +appointmentId,
       dto,
     );
+  }
+
+  @Patch('update-status/:id')
+  @ApiOkResponse({ type: MessageDto })
+  @Roles(UserRole.ADMIN, UserRole.SECRETARY)
+  updateAppointmentStatus(
+    @Param('id') id: string,
+    @Body('status') status: AppointmentStatus,
+  ) {
+    return this.adminAppointmentsService.updateAppointmentStatus(+id, status);
   }
 }
