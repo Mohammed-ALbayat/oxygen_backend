@@ -383,7 +383,7 @@ export class AdminAppointmentsService {
     if (!appointment) {
       throw new NotFoundException('Appointment not found');
     }
-    // السماح فقط للحالات الأساسية وعدم السماح بكلمات غيرهم
+
     if (!Object.values(AppointmentStatus).includes(status)) {
       throw new BadRequestException('Invalid appointment status');
     }
@@ -393,6 +393,31 @@ export class AdminAppointmentsService {
 
     return {
       message: 'Appointment status updated successfully',
+      appointment,
+    };
+  }
+
+  async updateAppointmentPaymentStatus(
+    id: number,
+    paymentStatus: PaymentStatus,
+  ) {
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id },
+    });
+
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found');
+    }
+
+    if (!Object.values(PaymentStatus).includes(paymentStatus)) {
+      throw new BadRequestException('Invalid payment status');
+    }
+
+    appointment.payment_status = paymentStatus;
+    await this.appointmentRepository.save(appointment);
+
+    return {
+      message: 'Appointment payment status updated successfully',
       appointment,
     };
   }
