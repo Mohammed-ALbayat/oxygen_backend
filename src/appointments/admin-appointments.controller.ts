@@ -45,28 +45,6 @@ export class AdminAppointmentsController {
     return this.adminAppointmentsService.cancel(+id);
   }
 
-  @Get('departments-with-doctors')
-  @ApiOkResponse({ type: MessageDto })
-  getDepartmentsWithDoctors() {
-    return this.adminAppointmentsService.getDepartmentsWithDoctors();
-  }
-
-  @Get('doctor-slots/:doctorId/:date')
-  @ApiOkResponse({ type: MessageDto })
-  getDoctorSlots(
-    @Param('doctorId') doctorId: string,
-    @Param('date') date: string,
-  ) {
-    return this.adminAppointmentsService.getDoctorSlots(+doctorId, date);
-  }
-
-  @Post('book')
-  @ApiOkResponse({ type: MessageDto })
-  @Roles(UserRole.ADMIN, UserRole.SECRETARY)
-  adminBookAppointment(@Body() createDto: CreateAppointmentDto) {
-    return this.adminAppointmentsService.adminBookAppointment(createDto);
-  }
-
   @Patch('update/:id')
   @ApiOkResponse({ type: MessageDto })
   @Roles(UserRole.ADMIN, UserRole.SECRETARY)

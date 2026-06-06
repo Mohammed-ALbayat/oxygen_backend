@@ -104,6 +104,9 @@ export class Appointment {
   // @IsOptional()
   // @IsString()
   // custom_cancellation_reason: string | null;
+  @Column({ default: false })
+  @IsBoolean()
+  is_updated_by_patient: boolean;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'created_by' })

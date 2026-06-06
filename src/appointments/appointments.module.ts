@@ -8,12 +8,22 @@ import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.en
 import { Doctor } from 'src/doctors/entities/doctor.entity';
 import { AppointmentsController } from './appointments.controller';
 import { AppointmentsService } from './appointments.service';
+import { PatientAppointmentsController } from './patient-appointments.controller';
+import { PatientAppointmentsService } from './patient-appointments.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Appointment, Specialty, DoctorSchedule, Doctor]),
   ],
-  controllers: [AdminAppointmentsController, AppointmentsController],
-  providers: [AdminAppointmentsService, AppointmentsService],
+  controllers: [
+    AdminAppointmentsController,
+    AppointmentsController,
+    PatientAppointmentsController,
+  ],
+  providers: [
+    AdminAppointmentsService,
+    AppointmentsService,
+    PatientAppointmentsService,
+  ],
 })
 export class AppointmentsModule {}

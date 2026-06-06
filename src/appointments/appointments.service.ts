@@ -1,12 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Appointment, AppointmentStatus } from './entities/appointment.entity';
+import {
+  Appointment,
+  AppointmentStatus,
+  PaymentStatus,
+} from './entities/appointment.entity';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { DepartmentDoctorsDto } from './dto/department-doctors.dto';
-import { getDayEnum } from './doctor-schedule.utils';
+import { calculateEndTime, getDayEnum } from './doctor-schedule.utils';
 import { generateTimeSlots } from './doctor-schedule.utils';
 import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.entity';
+import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { Doctor } from 'src/doctors/entities/doctor.entity';
 
 @Injectable()
 export class AppointmentsService {
@@ -17,6 +27,8 @@ export class AppointmentsService {
     private specialtyRepository: Repository<Specialty>,
     @InjectRepository(DoctorSchedule)
     private scheduleRepository: Repository<DoctorSchedule>,
+    @InjectRepository(Doctor)
+    private doctorRepository: Repository<Doctor>,
   ) {}
 
   async getDepartmentsWithDoctors(): Promise<DepartmentDoctorsDto[]> {
@@ -97,6 +109,99 @@ export class AppointmentsService {
       date,
       day: dayEnum,
       slots,
+    };
+  }
+
+  async createAppointment(createDto: CreateAppointmentDto) {
+    const { doctorId, patientId, date, start_time } = createDto;
+
+    const targetDate = date;
+    const dayEnum = getDayEnum(new Date(date));
+
+    const today = new Date();
+    if (new Date(targetDate) < new Date(today.toDateString())) {
+      throw new BadRequestException('Cannot book an appointment in the past');
+    }
+
+    const doctor = await this.doctorRepository.findOne({
+      where: { id: doctorId },
+      relations: ['specialty'],
+    });
+
+    if (!doctor) {
+      throw new NotFoundException('Doctor not found');
+    }
+
+    const schedule = await this.scheduleRepository.findOne({
+      where: {
+        doctor: { id: doctorId },
+        day_of_week: dayEnum,
+        is_active: true,
+      },
+    });
+
+    if (!schedule) {
+      throw new BadRequestException('Doctor not available on this day');
+    }
+
+    const allSlots = generateTimeSlots(
+      schedule.start_time,
+      schedule.end_time,
+      schedule.slot_duration,
+    );
+
+    if (!allSlots.includes(start_time)) {
+      throw new BadRequestException('Invalid time slot');
+    }
+
+    // التحقق من وجود تعارض في مواعيد المريض والطبيب بدون اعتبار المواعيد الملغاة
+
+    const patientConflict = await this.appointmentRepository
+      .createQueryBuilder('a')
+      .where('a.patient_id = :patientId', { patientId })
+      .andWhere('a.appointment_date = :date', { date: targetDate })
+      .andWhere('a.start_time = :start_time', { start_time })
+      .andWhere('a.status != :cancelledStatus', {
+        cancelledStatus: AppointmentStatus.CANCELLED,
+      })
+      .getOne();
+
+    if (patientConflict) {
+      throw new BadRequestException(
+        'Patient already has an appointment at this time',
+      );
+    }
+
+    const doctorConflict = await this.appointmentRepository
+      .createQueryBuilder('a')
+      .where('a.doctor_id = :doctorId', { doctorId })
+      .andWhere('a.appointment_date = :date', { date: targetDate })
+      .andWhere('a.start_time = :start_time', { start_time })
+      .andWhere('a.status != :cancelledStatus', {
+        cancelledStatus: AppointmentStatus.CANCELLED,
+      })
+      .getOne();
+
+    if (doctorConflict) {
+      throw new BadRequestException('This slot is already booked');
+    }
+
+    const appointment = this.appointmentRepository.create({
+      doctor: { id: doctorId },
+      patient: { id: patientId },
+      department: doctor.specialty,
+      appointment_date: targetDate,
+      start_time,
+      end_time: calculateEndTime(start_time, schedule.slot_duration),
+      status: AppointmentStatus.PENDING,
+      payment_status: PaymentStatus.UNPAID,
+    });
+
+    await this.appointmentRepository.save(appointment);
+
+    return {
+      message: 'Appointment booked successfully',
+      appointment,
     };
   }
 }
