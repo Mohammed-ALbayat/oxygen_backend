@@ -3,7 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import * as bcrypt from 'bcrypt';
 
-import { User, UserRole } from 'src/users/entities/user.entity';
+import { User } from 'src/users/entities/user.entity';
+import { UserRole } from 'src/users/enums/user-roles.enum';
 import { Doctor } from 'src/doctors/entities/doctor.entity';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { Repository } from 'typeorm';

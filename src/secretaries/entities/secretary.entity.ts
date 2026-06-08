@@ -18,10 +18,10 @@ export class Secretary {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   shift_start: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   shift_end: string;
 
   @Column({ default: true })

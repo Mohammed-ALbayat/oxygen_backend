@@ -4,7 +4,7 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Roles } from 'src/auth/roles.decorator';
-import { UserRole } from 'src/users/entities/user.entity';
+import { UserRole } from 'src/users/enums/user-roles.enum';
 import { MessageDto } from 'src/common/dto/message.dto';
 import { AdminAppointmentListItemDto } from './dto/admin-appointment-list-item.dto';
 import { ApiEndpoint } from 'src/common/swagger/api-endpoint.decorator';

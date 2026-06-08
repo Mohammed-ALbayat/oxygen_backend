@@ -5,7 +5,8 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { BloodType, Gender } from '../entities/patient.entity';
+import { BloodType } from '../entities/patient.entity';
+import { Gender } from 'src/users/enums/gender.enum';
 
 export class UpdateMeDto {
   @IsOptional()
@@ -17,12 +18,12 @@ export class UpdateMeDto {
   birth_date?: Date;
 
   @IsOptional()
-  @IsString()
-  address?: string;
-
-  @IsOptional()
   @IsEnum(Gender)
   gender?: Gender;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
 
   @IsOptional()
   @IsEnum(BloodType)

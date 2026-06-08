@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { CreateSecretaryDto } from './dto/create-secretary.dto';
 import * as bcrypt from 'bcrypt';
-import { UserRole } from 'src/users/entities/user.entity';
+import { UserRole } from 'src/users/enums/user-roles.enum';
 import { ConflictException } from '@nestjs/common';
 import { Secretary } from './entities/secretary.entity';
 import { UpdateSecretaryDto } from './dto/update-secretary.dto';

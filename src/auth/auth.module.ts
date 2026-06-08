@@ -9,6 +9,7 @@ import { User } from 'src/users/entities/user.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { OtpVerification } from './entities/otp-verification.entity';
 import { OtpService } from './otp.service';
+import { Patient } from 'src/patients/entities/patient.entity';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { OtpService } from './otp.service';
         signOptions: { expiresIn: '1d' },
       }),
     }),
-    TypeOrmModule.forFeature([User, OtpVerification]),
+
+    TypeOrmModule.forFeature([User, OtpVerification, Patient]),
   ],
 
   providers: [AuthService, JwtStrategy, OtpService],

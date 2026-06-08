@@ -6,7 +6,8 @@ import {
   IsString,
 } from 'class-validator';
 
-import { BloodType, Gender } from '../entities/patient.entity';
+import { BloodType } from '../entities/patient.entity';
+import { Gender } from 'src/users/enums/gender.enum';
 
 export class UpdatePatientProfileDto {
   @IsOptional()

@@ -6,7 +6,8 @@ import { Doctor } from './entities/doctor.entity';
 import { NotFoundException } from '@nestjs/common';
 import { UpdateDoctorFullDto } from './dto/update-doctor.dto';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
-import { User, UserRole } from 'src/users/entities/user.entity';
+import { User } from 'src/users/entities/user.entity';
+import { UserRole } from 'src/users/enums/user-roles.enum';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 
 @Injectable()

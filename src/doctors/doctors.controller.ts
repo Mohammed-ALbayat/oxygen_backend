@@ -11,7 +11,7 @@ import { UpdateDoctorFullDto } from './dto/update-doctor.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
-import { UserRole } from 'src/users/entities/user.entity';
+import { UserRole } from 'src/users/enums/user-roles.enum';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ApiEndpoint } from 'src/common/swagger/api-endpoint.decorator';

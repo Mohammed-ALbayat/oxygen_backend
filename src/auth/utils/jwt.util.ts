@@ -1,5 +1,5 @@
 import { JwtService } from '@nestjs/jwt';
-import { UserRole } from 'src/users/entities/user.entity';
+import { UserRole } from 'src/users/enums/user-roles.enum';
 
 export function generateToken(
   user: any,
@@ -10,7 +10,6 @@ export function generateToken(
     sub: user.id,
     phone: user.phone,
     role: role,
-    tv: user.token_version,
   };
 
   return {

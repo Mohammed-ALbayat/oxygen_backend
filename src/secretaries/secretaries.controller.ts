@@ -11,7 +11,7 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { CreateSecretaryDto } from './dto/create-secretary.dto';
-import { UserRole } from 'src/users/entities/user.entity';
+import { UserRole } from 'src/users/enums/user-roles.enum';
 import { UpdateSecretaryDto } from './dto/update-secretary.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ApiEndpoint } from 'src/common/swagger/api-endpoint.decorator';

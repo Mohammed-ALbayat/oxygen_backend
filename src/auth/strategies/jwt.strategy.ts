@@ -26,10 +26,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     if (!user) return null;
 
-    if (user.token_version !== payload.tv) {
-      return null;
-    }
-
     return user;
   }
 }

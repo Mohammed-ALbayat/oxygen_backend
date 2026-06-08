@@ -9,29 +9,20 @@ import { Patient } from 'src/patients/entities/patient.entity';
 import { Secretary } from 'src/secretaries/entities/secretary.entity';
 import { OneToOne } from 'typeorm';
 import { Matches } from 'class-validator';
-
-export enum UserRole {
-  ADMIN = 'admin',
-  DOCTOR = 'doctor',
-  SECRETARY = 'secretary',
-  PATIENT = 'patient',
-}
-
-export enum UserStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  BLOCKED = 'blocked',
-}
+import { UserRole } from '../enums/user-roles.enum';
+import { UserStatus } from '../enums/user-status.enum';
+import { Gender } from '../enums/gender.enum';
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({nullable: true})
-  full_name: string;
+  @Column({ type: 'varchar', nullable: true })
+  full_name: string | null;
 
   @Column({
+    type: 'varchar',
     unique: true,
   })
   @Matches(/^09\d{8}$/, {
@@ -39,8 +30,8 @@ export class User {
   })
   phone: string;
 
-  @Column({ nullable: true })
-  password: string;
+  @Column({ type: 'varchar', nullable: true })
+  password: string | null;
 
   @Column({
     type: 'enum',
@@ -56,8 +47,18 @@ export class User {
   })
   status: UserStatus;
 
-  @Column({ default: 0 })
-  token_version: number;
+  @Column({
+    type: 'date',
+    nullable: true,
+  })
+  birth_date: Date | null;
+
+  @Column({
+    type: 'enum',
+    enum: Gender,
+    nullable: true,
+  })
+  gender: Gender | null;
 
   @CreateDateColumn()
   created_at: Date;

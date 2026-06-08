@@ -1,5 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { AppointmentStatus, PaymentStatus } from '../entities/appointment.entity';
+import {
+  AppointmentStatus,
+  PaymentStatus,
+} from '../entities/appointment.entity';
 
 export class AdminAppointmentListItemDto {
   @ApiProperty()
@@ -33,13 +36,13 @@ export class AdminAppointmentListItemDto {
   doctor_id: number;
 
   @ApiProperty()
-  doctor_name: string;
+  doctor_name: string | null;
 
   @ApiProperty()
   patient_id: number;
 
   @ApiProperty()
-  patient_name: string;
+  patient_name: string | null;
 
   @ApiPropertyOptional()
   cancellation_reason_id: number | null;

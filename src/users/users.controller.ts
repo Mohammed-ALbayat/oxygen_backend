@@ -12,7 +12,7 @@ import { UsersService } from './users.service';
 import { Roles } from 'src/auth/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
-import { UserRole } from './entities/user.entity';
+import { UserRole } from './enums/user-roles.enum';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ApiEndpoint } from 'src/common/swagger/api-endpoint.decorator';
 

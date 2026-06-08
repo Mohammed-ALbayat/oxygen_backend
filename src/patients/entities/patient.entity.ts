@@ -7,10 +7,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-export enum Gender {
-  MALE = 'male',
-  FEMALE = 'female',
-}
 export enum BloodType {
   A_POSITIVE = 'A+',
   A_NEGATIVE = 'A-',
@@ -33,22 +29,10 @@ export class Patient {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({
-    type: 'date',
-    nullable: true,
-  })
-  birth_date: Date;
-
   @Column('text', {
     nullable: true,
   })
-  address: string;
-
-  @Column({
-    type: 'enum',
-    enum: Gender,
-  })
-  gender: Gender;
+  address?: string;
 
   @Column({
     type: 'enum',

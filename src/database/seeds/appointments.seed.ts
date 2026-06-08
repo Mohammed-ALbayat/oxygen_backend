@@ -1,13 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, UserRole } from 'src/users/entities/user.entity';
+import { User } from 'src/users/entities/user.entity';
+import { UserRole } from 'src/users/enums/user-roles.enum';
+import { Gender } from 'src/users/enums/gender.enum';
 import { Doctor } from 'src/doctors/entities/doctor.entity';
-import {
-  BloodType,
-  Gender,
-  Patient,
-} from 'src/patients/entities/patient.entity';
+import { BloodType, Patient } from 'src/patients/entities/patient.entity';
 import {
   Appointment,
   AppointmentStatus,
@@ -130,14 +128,14 @@ export class AppointmentsSeed {
           full_name: `Appointment Patient ${i}`,
           phone: DEMO_APPOINTMENT_PHONES[i],
           role: UserRole.PATIENT,
+          birth_date: new Date(1995, i, 15),
+          gender: i % 2 === 0 ? Gender.MALE : Gender.FEMALE,
         });
         const savedUser = await this.userRepository.save(user);
 
         patient = this.patientRepository.create({
           user: savedUser,
-          birth_date: new Date(1995, i, 15),
           address: `Demo Street ${i}`,
-          gender: i % 2 === 0 ? Gender.MALE : Gender.FEMALE,
           blood_type: BloodType.O_POSITIVE,
         });
         patient = await this.patientRepository.save(patient);

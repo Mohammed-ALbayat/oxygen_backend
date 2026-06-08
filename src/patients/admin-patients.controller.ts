@@ -10,7 +10,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
-import { UserRole } from 'src/users/entities/user.entity';
+import { UserRole } from 'src/users/enums/user-roles.enum';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { CreatePatientProfileDto } from './dto/create-profile-patient.dto';
