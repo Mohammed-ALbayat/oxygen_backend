@@ -11,6 +11,8 @@ import { AppointmentsService } from './appointments.service';
 import { PatientAppointmentsController } from './patient-appointments.controller';
 import { PatientAppointmentsService } from './patient-appointments.service';
 import { CancellationReason } from './entities/cancellation.entity';
+import { DoctorAppointmentsController } from './doctor-appointments.controller';
+import { DoctorAppointmentsService } from './doctor-appointments.service';
 
 @Module({
   imports: [
@@ -26,11 +28,13 @@ import { CancellationReason } from './entities/cancellation.entity';
     AdminAppointmentsController,
     AppointmentsController,
     PatientAppointmentsController,
+    DoctorAppointmentsController,
   ],
   providers: [
     AdminAppointmentsService,
     AppointmentsService,
     PatientAppointmentsService,
+    DoctorAppointmentsService,
   ],
 })
 export class AppointmentsModule {}
