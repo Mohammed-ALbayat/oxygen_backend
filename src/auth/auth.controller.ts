@@ -7,6 +7,7 @@ import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { MessageDto } from 'src/common/dto/message.dto';
 import { ResetPasswordDto } from 'src/common/dto/reset-password.dto';
 import { ApiEndpoint } from 'src/common/swagger/api-endpoint.decorator';
+import { RegisterDto } from './dto/register.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -18,6 +19,15 @@ export class AuthController {
   @ApiEndpoint('Staff login with phone and password', 'public')
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
+  }
+
+  @Post('register')
+  @ApiOkResponse({
+    type: MessageDto,
+  })
+  @ApiEndpoint('Register new patient', 'public')
+  register(@Body() dto: RegisterDto) {
+    return this.authService.register(dto);
   }
 
   @Post('send-otp')

@@ -6,6 +6,7 @@ import { User } from 'src/users/entities/user.entity';
 import { UserRole } from 'src/users/enums/user-roles.enum';
 import { UpdateMeDto } from './dto/update-me.dto';
 import { PatientMeResponseDto } from './dto/patient-me-response.dto';
+import { toPatientMeResponse } from './utils/patient-response.util';
 
 @Injectable()
 export class PatientsService {
@@ -28,7 +29,7 @@ export class PatientsService {
       throw new NotFoundException('المريض غير موجود');
     }
 
-    return this.toMeResponse(currentUser, currentUser.patient ?? null);
+    return toPatientMeResponse(currentUser, currentUser.patient ?? null);
   }
 
   async updateMe(user: User, dto: UpdateMeDto): Promise<PatientMeResponseDto> {
@@ -66,7 +67,7 @@ export class PatientsService {
 
     profile = await this.patientRepository.save(profile);
 
-    return this.toMeResponse(currentUser, profile);
+    return toPatientMeResponse(currentUser, profile);
   }
 
   private applyPatientUpdates(profile: Patient, dto: UpdateMeDto) {
@@ -101,27 +102,5 @@ export class PatientsService {
     if (dto.tall !== undefined) {
       profile.tall = dto.tall;
     }
-  }
-
-  private toMeResponse(
-    user: User,
-
-    profile: Patient | null,
-  ): PatientMeResponseDto {
-    return {
-      id: user.id,
-      full_name: user.full_name ?? null,
-      phone: user.phone,
-      birth_date: user.birth_date ?? null,
-      gender: user.gender ?? null,
-      address: profile?.address ?? null,
-      blood_type: profile?.blood_type ?? null,
-      allergies: profile?.allergies ?? null,
-      previous_operations: profile?.previous_operations ?? null,
-      chronic_diseases: profile?.chronic_diseases ?? null,
-      permanent_medications: profile?.permanent_medications ?? null,
-      tall: profile?.tall ?? null,
-      weight: profile?.weight ?? null,
-    };
   }
 }

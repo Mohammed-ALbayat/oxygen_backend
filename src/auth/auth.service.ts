@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -10,11 +11,16 @@ import * as bcrypt from 'bcrypt';
 import { User } from 'src/users/entities/user.entity';
 import { UserRole } from 'src/users/enums/user-roles.enum';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 import { generateToken } from './utils/jwt.util';
 import { OtpService } from './otp.service';
 import { OtpPurpose } from './entities/otp-verification.entity';
 import { ResetPasswordDto } from 'src/common/dto/reset-password.dto';
 import { Patient } from 'src/patients/entities/patient.entity';
+import {
+  isPatientProfileCompleted,
+  toPatientMeResponse,
+} from 'src/patients/utils/patient-response.util';
 
 @Injectable()
 export class AuthService {
@@ -44,14 +50,49 @@ export class AuthService {
     return generateToken(user, user.role, this.jwtService);
   }
 
+  async register(dto: RegisterDto) {
+    const existing = await this.userRepository.findOne({
+      where: { phone: dto.phone },
+    });
+
+    if (existing) {
+      throw new ConflictException('رقم الهاتف موجود مسبقاً');
+    }
+
+    const user = this.userRepository.create({
+      phone: dto.phone,
+      full_name: dto.full_name,
+      gender: dto.gender,
+      birth_date: new Date(dto.birthdate),
+      role: UserRole.PATIENT,
+    });
+    await this.userRepository.save(user);
+
+    const patient = this.patientRepository.create({ user });
+    await this.patientRepository.save(patient);
+
+    return this.otpService.create(dto.phone, OtpPurpose.PATIENT_LOGIN);
+  }
+
   async sendOtp(phone: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        phone,
+        role: UserRole.PATIENT,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('المريض غير موجود');
+    }
+
     return this.otpService.create(phone, OtpPurpose.PATIENT_LOGIN);
   }
 
   async verifyOtp(phone: string, otp: string) {
     await this.otpService.verify(phone, otp, OtpPurpose.PATIENT_LOGIN);
 
-    let user = await this.userRepository.findOne({
+    const user = await this.userRepository.findOne({
       where: {
         phone,
         role: UserRole.PATIENT,
@@ -60,19 +101,16 @@ export class AuthService {
     });
 
     if (!user) {
-      user = this.userRepository.create({
-        phone,
-
-        role: UserRole.PATIENT,
-      });
-      await this.userRepository.save(user);
-
-      const patient = this.patientRepository.create({ user });
-
-      await this.patientRepository.save(patient);
+      throw new NotFoundException('المريض غير موجود');
     }
 
-    return generateToken(user, UserRole.PATIENT, this.jwtService);
+    const access_token = generateToken(user, UserRole.PATIENT, this.jwtService);
+
+    return {
+      access_token,
+      patient: toPatientMeResponse(user, user.patient ?? null),
+      is_profile_completed: isPatientProfileCompleted(user),
+    };
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
