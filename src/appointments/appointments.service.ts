@@ -17,6 +17,9 @@ import { generateTimeSlots } from './doctor-schedule.utils';
 import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.entity';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { Doctor } from 'src/doctors/entities/doctor.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Patient } from 'src/patients/entities/patient.entity';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class AppointmentsService {
@@ -29,6 +32,12 @@ export class AppointmentsService {
     private scheduleRepository: Repository<DoctorSchedule>,
     @InjectRepository(Doctor)
     private doctorRepository: Repository<Doctor>,
+    @InjectRepository(Patient)
+    private patientRepository: Repository<Patient>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async getDepartmentsWithDoctors(): Promise<DepartmentDoctorsDto[]> {
@@ -125,11 +134,20 @@ export class AppointmentsService {
 
     const doctor = await this.doctorRepository.findOne({
       where: { id: doctorId },
-      relations: ['specialty'],
+      relations: ['specialty', 'user'],
     });
 
     if (!doctor) {
       throw new NotFoundException('Doctor not found');
+    }
+
+    const patient = await this.patientRepository.findOne({
+      where: { id: patientId },
+      relations: ['user'],
+    });
+
+    if (!patient) {
+      throw new NotFoundException('patient not found');
     }
 
     const schedule = await this.scheduleRepository.findOne({
@@ -198,7 +216,12 @@ export class AppointmentsService {
     });
 
     await this.appointmentRepository.save(appointment);
-
+    this.eventEmitter.emit('appointment.created', {
+      patientUserId: patient.user.id,
+      doctorUserId: doctor.user.id,
+      date: targetDate,
+      time: start_time,
+    });
     return {
       message: 'Appointment booked successfully',
       appointment,

@@ -13,6 +13,9 @@ import { PatientAppointmentsService } from './patient-appointments.service';
 import { CancellationReason } from './entities/cancellation.entity';
 import { DoctorAppointmentsController } from './doctor-appointments.controller';
 import { DoctorAppointmentsService } from './doctor-appointments.service';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { Patient } from 'src/patients/entities/patient.entity';
+import { User } from 'src/users/entities/user.entity';
 
 @Module({
   imports: [
@@ -21,7 +24,10 @@ import { DoctorAppointmentsService } from './doctor-appointments.service';
       Specialty,
       DoctorSchedule,
       Doctor,
+      Patient,
+      User,
       CancellationReason,
+      EventEmitterModule,
     ]),
   ],
   controllers: [

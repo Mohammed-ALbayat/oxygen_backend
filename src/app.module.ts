@@ -12,7 +12,8 @@ import { SecretariesModule } from './secretaries/secretaries.module';
 import { DoctorSchedulesModule } from './doctor-schedules/doctor-schedules.module';
 import { SeedModule } from './database/seeds/seed.module';
 import { AppointmentsModule } from './appointments/appointments.module';
-
+import { NotificationsModule } from './notifications/notifications.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -29,6 +30,8 @@ import { AppointmentsModule } from './appointments/appointments.module';
     SecretariesModule,
     DoctorSchedulesModule,
     AppointmentsModule,
+    NotificationsModule,
+    EventEmitterModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService],
