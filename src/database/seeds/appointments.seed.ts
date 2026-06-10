@@ -99,7 +99,7 @@ export class AppointmentsSeed {
       const appointment = this.appointmentRepository.create({
         patient,
         doctor,
-        department_id: departmentId,
+        department: doctor.specialty,
         appointment_date: template.appointment_date as unknown as Date,
         start_time: template.start_time,
         end_time: template.end_time,
