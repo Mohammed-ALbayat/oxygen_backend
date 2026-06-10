@@ -1,0 +1,11 @@
+/node_modules
+/test
+/.cursor
+/.vscode
+/dist
+
+.evn
+.gitignore
+.prettierrc
+README.md
+eslint.config
