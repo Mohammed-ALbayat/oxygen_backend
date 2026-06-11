@@ -21,7 +21,7 @@ import { Secretary } from 'src/secretaries/entities/secretary.entity';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow('JWT_SECRET_KEY'),
-        signOptions: { expiresIn: '1d' },
+        signOptions: { expiresIn: '90d' },
       }),
     }),
 
