@@ -4,7 +4,6 @@ import {
   Get,
   Param,
   UseGuards,
-  Post,
   Patch,
   Body,
 } from '@nestjs/common';
@@ -17,7 +16,6 @@ import { UserRole } from 'src/users/enums/user-roles.enum';
 import { MessageDto } from 'src/common/dto/message.dto';
 import { AdminAppointmentListItemDto } from './dto/admin-appointment-list-item.dto';
 import { ApiEndpoint } from 'src/common/swagger/api-endpoint.decorator';
-import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import {
   AppointmentStatus,

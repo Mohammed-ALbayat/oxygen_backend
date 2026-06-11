@@ -16,7 +16,10 @@ export class DoctorSchedulesController {
 
   @Get('doctor/:id')
   @ApiOkResponse({ type: DoctorSchedulesResponseDto })
-  @ApiEndpoint('Get weekly working schedule for a doctor by id', 'authenticated')
+  @ApiEndpoint(
+    'Get weekly working schedule for a doctor by id',
+    'authenticated',
+  )
   findByDoctor(@Param('id') id: string) {
     return this.doctorSchedulesService.findByDoctorId(+id);
   }

@@ -41,10 +41,7 @@ export class DoctorSchedulesService {
     };
   }
 
-  async updateWorkingHours(
-    doctorId: number,
-    dto: UpdateDoctorWorkingHoursDto,
-  ) {
+  async updateWorkingHours(doctorId: number, dto: UpdateDoctorWorkingHoursDto) {
     const doctor = await this.doctorRepository.findOne({
       where: { id: doctorId },
     });

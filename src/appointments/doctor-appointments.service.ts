@@ -51,6 +51,7 @@ export class DoctorAppointmentsService {
         return (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99);
       });
     }
+
     return appointments.map((appointment) => {
       const appointmentDate =
         appointment.appointment_date instanceof Date

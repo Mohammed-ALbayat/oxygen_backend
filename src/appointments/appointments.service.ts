@@ -31,37 +31,40 @@ export class AppointmentsService {
     private doctorRepository: Repository<Doctor>,
   ) {}
 
-  async getDepartmentsWithDoctors(): Promise<DepartmentDoctorsDto[]> {
-    const specialties = await this.specialtyRepository
-      .createQueryBuilder('specialty')
-      .leftJoin('specialty.doctors', 'doctor')
-      .leftJoin('doctor.user', 'user')
-      .leftJoin('doctor.schedules', 'schedule')
-      .addSelect([
-        'specialty.id',
-        'specialty.title',
-        'doctor.id',
-        'user.full_name',
-        'schedule.day_of_week',
-        'schedule.start_time',
-        'schedule.end_time',
-      ])
-      .getMany();
-
-    return specialties.map((specialty) => ({
-      id: specialty.id,
-      name: specialty.title,
-      doctors: (specialty.doctors || []).map((doctor) => ({
-        id: doctor.id,
-        name: doctor.user?.full_name,
-        schedules: (doctor.schedules || []).map((s) => ({
-          day_of_week: s.day_of_week,
-          start_time: s.start_time,
-          end_time: s.end_time,
-        })),
-      })),
-    }));
+  async getDepartmentsWithDoctors() {
+    print();
   }
+  // async getDepartmentsWithDoctors(): Promise<DepartmentDoctorsDto[]> {
+  //   const specialties = await this.specialtyRepository
+  //     .createQueryBuilder('specialty')
+  //     .leftJoin('specialty.doctors', 'doctor')
+  //     .leftJoin('doctor.user', 'user')
+  //     .leftJoin('doctor.schedules', 'schedule')
+  //     .addSelect([
+  //       'specialty.id',
+  //       'specialty.title',
+  //       'doctor.id',
+  //       'user.full_name',
+  //       'schedule.day_of_week',
+  //       'schedule.start_time',
+  //       'schedule.end_time',
+  //     ])
+  //     .getMany();
+
+  //   return specialties.map((specialty) => ({
+  //     id: specialty.id,
+  //     name: specialty.title,
+  //     doctors: (specialty.doctors || []).map((doctor) => ({
+  //       id: doctor.id,
+  //       name: doctor.user?.full_name,
+  //       schedules: (doctor.schedules || []).map((s) => ({
+  //         day_of_week: s.day_of_week,
+  //         start_time: s.start_time,
+  //         end_time: s.end_time,
+  //       })),
+  //     })),
+  //   }));
+  // }
 
   async getDoctorSlots(doctorId: number, date: string) {
     const targetDate = new Date(date);

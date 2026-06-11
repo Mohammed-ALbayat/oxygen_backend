@@ -1,14 +1,12 @@
 import {
   Controller,
-  Get,
   UseGuards,
-  Delete,
   Param,
   Body,
   Patch,
   Post,
 } from '@nestjs/common';
-import { UserRole } from 'src/users/entities/user.entity';
+import { UserRole } from 'src/users/enums/user-roles.enum';
 import { ApiBearerAuth } from 'node_modules/@nestjs/swagger/dist/decorators/api-bearer.decorator';
 import { PatientAppointmentsService } from './patient-appointments.service';
 import { PatientUpdateAppointmentDto } from './dto/patient-update-appointment.dto';

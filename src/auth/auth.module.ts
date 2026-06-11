@@ -10,6 +10,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { OtpVerification } from './entities/otp-verification.entity';
 import { OtpService } from './otp.service';
 import { Patient } from 'src/patients/entities/patient.entity';
+import { Doctor } from 'src/doctors/entities/doctor.entity';
+import { Secretary } from 'src/secretaries/entities/secretary.entity';
 
 @Module({
   imports: [
@@ -23,7 +25,13 @@ import { Patient } from 'src/patients/entities/patient.entity';
       }),
     }),
 
-    TypeOrmModule.forFeature([User, OtpVerification, Patient]),
+    TypeOrmModule.forFeature([
+      User,
+      OtpVerification,
+      Patient,
+      Doctor,
+      Secretary,
+    ]),
   ],
 
   providers: [AuthService, JwtStrategy, OtpService],

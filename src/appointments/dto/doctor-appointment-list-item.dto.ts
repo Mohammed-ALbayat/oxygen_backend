@@ -12,10 +12,10 @@ export class DoctorAppointmentDto {
   patient_id: number;
 
   @ApiProperty()
-  patient_name: string;
+  patient_name: string | null;
 
   @ApiPropertyOptional()
-  department_id: number | null;
+  department_id: number;
 
   @ApiPropertyOptional()
   department_name: string | null;

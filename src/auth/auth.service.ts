@@ -21,6 +21,14 @@ import {
   isPatientProfileCompleted,
   toPatientMeResponse,
 } from 'src/patients/utils/patient-response.util';
+import { toDoctorMeResponse } from 'src/doctors/utils/doctor-response.util';
+import { toSecretaryMeResponse } from 'src/secretaries/utils/secretary-response.util';
+import { Doctor } from 'src/doctors/entities/doctor.entity';
+import { Secretary } from 'src/secretaries/entities/secretary.entity';
+import { toAdminMeResponse } from 'src/users/utils/admin-response.util';
+import { DoctorMeResponseDto } from 'src/doctors/dto/doctor-me-response.dto';
+import { SecretaryMeResponseDto } from 'src/secretaries/dto/secretary-me-response.dto';
+import { AdminMeResponseDto } from 'src/users/dto/admin-me-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -29,6 +37,9 @@ export class AuthService {
     private otpService: OtpService,
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Patient) private patientRepository: Repository<Patient>,
+    @InjectRepository(Doctor) private doctorRepository: Repository<Doctor>,
+    @InjectRepository(Secretary)
+    private secretaryRepository: Repository<Secretary>,
   ) {}
 
   async login(dto: LoginDto) {
@@ -47,7 +58,33 @@ export class AuthService {
     }
 
     await this.userRepository.save(user);
-    return generateToken(user, user.role, this.jwtService);
+
+    const access_token = generateToken(user, user.role, this.jwtService);
+    let userDetails:
+      | DoctorMeResponseDto
+      | SecretaryMeResponseDto
+      | AdminMeResponseDto;
+
+    if (user.role === UserRole.DOCTOR) {
+      const doctorProfile = await this.doctorRepository.findOne({
+        where: { user: { id: user.id } },
+      });
+      userDetails = toDoctorMeResponse(user, doctorProfile);
+    } else if (user.role === UserRole.SECRETARY) {
+      const secretaryProfile = await this.secretaryRepository.findOne({
+        where: { user: { id: user.id } },
+      });
+      userDetails = toSecretaryMeResponse(user, secretaryProfile);
+    } else if (user.role === UserRole.ADMIN) {
+      userDetails = toAdminMeResponse(user);
+    } else {
+      throw new UnauthorizedException('دور المستخدم غير صالح أو غير مدعوم');
+    }
+
+    return {
+      access_token,
+      user: userDetails,
+    };
   }
 
   async register(dto: RegisterDto) {

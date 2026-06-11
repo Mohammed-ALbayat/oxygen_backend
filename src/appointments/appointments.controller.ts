@@ -1,18 +1,9 @@
-import {
-  Controller,
-  Delete,
-  Get,
-  Param,
-  UseGuards,
-  Post,
-  Patch,
-  Body,
-} from '@nestjs/common';
+import { Controller, Get, Param, UseGuards, Post, Body } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { MessageDto } from 'src/common/dto/message.dto';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
-import { UserRole } from 'src/users/entities/user.entity';
+import { UserRole } from 'src/users/enums/user-roles.enum';
 import { Roles } from 'src/auth/roles.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
