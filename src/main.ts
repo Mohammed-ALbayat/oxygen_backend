@@ -46,6 +46,9 @@ async function bootstrap() {
   await secretariesSeed.seed();
   await demoDoctorSeed.seed();
   await appointmentsSeed.seed();
-  await app.listen(process.env.PORT ?? 3000);
+
+  app.enableCors();
+
+  await app.listen(process.env.PORT ?? 4000);
 }
 bootstrap();
