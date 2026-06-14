@@ -6,6 +6,7 @@ import {
   Patch,
   Get,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth } from 'node_modules/@nestjs/swagger/dist/decorators/api-bearer.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -18,6 +19,9 @@ import { CancelAppointmentDto } from './dto/patient-cancellation.dto';
 import { PatientUpdateAppointmentDto } from './dto/patient-update-appointment.dto';
 import { PatientCreateAppointmentDto } from './dto/patient-create-appointment.dto';
 import { PatientAppointmentsService } from './patient-appointments.service';
+import { AppointmentStatus } from './entities/appointment.entity';
+import { ApiQuery } from '@nestjs/swagger';
+import { AppointmentsService } from './appointments.service';
 
 @ApiBearerAuth()
 @Controller('patient/appointments')
@@ -26,11 +30,23 @@ import { PatientAppointmentsService } from './patient-appointments.service';
 export class PatientAppointmentsController {
   constructor(
     private readonly patientAppointmentsService: PatientAppointmentsService,
+    private readonly appointmentsService: AppointmentsService,
   ) {}
 
+  @ApiQuery({
+    name: 'appointment_status',
+    required: false,
+    enum: AppointmentStatus,
+  })
   @Get('/')
-  getAllAppointment(@CurrentUser() user: User) {
-    return this.patientAppointmentsService.findAllAppointment(user.id);
+  getAllAppointment(
+    @CurrentUser() user: User,
+    @Query('appointment_status') appointment_status?: AppointmentStatus,
+  ) {
+    return this.patientAppointmentsService.findAllAppointment(
+      user.id,
+      appointment_status,
+    );
   }
 
   @Post('/')
@@ -65,5 +81,20 @@ export class PatientAppointmentsController {
       +appointmentId,
       dto,
     );
+  }
+
+  @Get('doctors')
+  getDepartmentsWithDoctors(@Query('specialtyId') specialtyId?: number) {
+    return this.patientAppointmentsService.getDepartmentsWithDoctors(
+      specialtyId,
+    );
+  }
+
+  @Get('doctor-slots/:doctorId')
+  getDoctorSlots(
+    @Param('doctorId') doctorId: number,
+    @Query('date') date?: string,
+  ) {
+    return this.appointmentsService.getDoctorSlots(doctorId, date);
   }
 }

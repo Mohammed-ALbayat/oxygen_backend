@@ -10,6 +10,7 @@ import { calculateEndTime, getDayEnum } from './utils/doctor-schedule.utils';
 import { generateTimeSlots } from './utils/doctor-schedule.utils';
 import { AppointmentsService } from './appointments.service';
 import { PatientCreateAppointmentDto } from './dto/patient-create-appointment.dto';
+import { Specialty } from 'src/specialty/entities/specialty.entity';
 
 @Injectable()
 export class PatientAppointmentsService {
@@ -18,14 +19,29 @@ export class PatientAppointmentsService {
     private appointmentRepository: Repository<Appointment>,
     @InjectRepository(DoctorSchedule)
     private scheduleRepository: Repository<DoctorSchedule>,
+    @InjectRepository(Specialty)
+    private specialtyRepository: Repository<Specialty>,
 
     private appointmentService: AppointmentsService,
   ) {}
 
-  async findAllAppointment(patientId: number) {
-    return this.appointmentRepository.find({
-      where: { patient: { userId: patientId } },
+  async findAllAppointment(
+    patientId: number,
+    appointment_status: AppointmentStatus | undefined,
+  ) {
+    const whereConditions: any = {
+      patient: { userId: patientId },
+    };
+
+    if (appointment_status) {
+      whereConditions.status = appointment_status;
+    }
+
+    const appointments = await this.appointmentRepository.find({
+      where: whereConditions,
     });
+
+    return appointments;
   }
 
   async createAppointment(patientId: number, dto: PatientCreateAppointmentDto) {
@@ -239,5 +255,9 @@ export class PatientAppointmentsService {
       message: 'Appointment cancelled successfully',
       appointment,
     };
+  }
+
+  async getDepartmentsWithDoctors(specialtyId: number | undefined) {
+    return this.appointmentService.getDepartmentsWithDoctors(specialtyId);
   }
 }
