@@ -1,31 +1,41 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Appointment, AppointmentStatus } from './entities/appointment.entity';
-import { Specialty } from 'src/specialty/entities/specialty.entity';
-import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.entity';
-import { Doctor } from 'src/doctors/entities/doctor.entity';
-import { PatientUpdateAppointmentDto } from './dto/patient-update-appointment.dto';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
-import { calculateEndTime, getDayEnum } from './doctor-schedule.utils';
-import { generateTimeSlots } from './doctor-schedule.utils';
+import { Repository } from 'typeorm';
+import { PatientUpdateAppointmentDto } from './dto/patient-update-appointment.dto';
 import { CancelAppointmentDto } from './dto/patient-cancellation.dto';
-import { CancellationReason } from './entities/cancellation.entity';
+import { Appointment, AppointmentStatus } from './entities/appointment.entity';
+import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.entity';
+import { calculateEndTime, getDayEnum } from './utils/doctor-schedule.utils';
+import { generateTimeSlots } from './utils/doctor-schedule.utils';
+import { AppointmentsService } from './appointments.service';
+import { PatientCreateAppointmentDto } from './dto/patient-create-appointment.dto';
 
 @Injectable()
 export class PatientAppointmentsService {
   constructor(
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
-    @InjectRepository(Specialty)
-    private specialtyRepository: Repository<Specialty>,
     @InjectRepository(DoctorSchedule)
     private scheduleRepository: Repository<DoctorSchedule>,
-    @InjectRepository(Doctor)
-    private doctorRepository: Repository<Doctor>,
-    @InjectRepository(CancellationReason)
-    private cancellationReasonRepository: Repository<CancellationReason>,
+
+    private appointmentService: AppointmentsService,
   ) {}
+
+  async findAllAppointment(patientId: number) {
+    return this.appointmentRepository.find({
+      where: { patient: { userId: patientId } },
+    });
+  }
+
+  async createAppointment(patientId: number, dto: PatientCreateAppointmentDto) {
+    return this.appointmentService.createAppointment(
+      dto.doctorId,
+      patientId,
+      dto.date,
+      dto.start_time,
+    );
+  }
 
   async patientUpdateAppointment(
     patientId: number,
@@ -36,7 +46,7 @@ export class PatientAppointmentsService {
       where: {
         id: appointmentId,
         patient: {
-          id: patientId,
+          userId: patientId,
         },
       },
       relations: ['doctor', 'patient', 'department'],
@@ -104,7 +114,7 @@ export class PatientAppointmentsService {
 
     const schedule = await this.scheduleRepository.findOne({
       where: {
-        doctor: { id: doctor.id },
+        doctor: { user_id: doctor.user_id },
         day_of_week: dayEnum,
         is_active: true,
       },
@@ -134,7 +144,7 @@ export class PatientAppointmentsService {
     const doctorConflict = await this.appointmentRepository
       .createQueryBuilder('a')
       .where('a.doctor_id = :doctorId', {
-        doctorId: doctor.id,
+        doctorId: doctor.user_id,
       })
       .andWhere('a.appointment_date = :date', {
         date: newDate,
@@ -197,81 +207,16 @@ export class PatientAppointmentsService {
     };
   }
 
-  // async patientCancelAppointment(
-  //   patientId: number,
-  //   appointmentId: number,
-  //   dto: CancelAppointmentDto,
-  // ) {
-  //   const appointment = await this.appointmentRepository.findOne({
-  //     where: {
-  //       id: appointmentId,
-  //       patient: { id: patientId },
-  //     },
-  //     relations: ['patient', 'doctor', 'cancellationReason'],
-  //   });
-
-  //   if (!appointment) {
-  //     throw new NotFoundException('Appointment not found');
-  //   }
-
-  //   if (appointment.status === AppointmentStatus.CANCELLED) {
-  //     throw new BadRequestException('Appointment already cancelled');
-  //   }
-
-  //   if (
-  //     appointment.status === AppointmentStatus.START ||
-  //     appointment.status === AppointmentStatus.COMPLETE
-  //   ) {
-  //     throw new BadRequestException(
-  //       'Cannot cancel started or completed appointment',
-  //     );
-  //   }
-
-  //   let reason: CancellationReason | null = null;
-
-  //   const appointmentDateTime = new Date(
-  //     `${appointment.appointment_date}T${appointment.start_time}`,
-  //   );
-
-  //   const now = new Date();
-
-  //   const hoursDiff =
-  //     (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-
-  //   if (hoursDiff < 2) {
-  //     throw new BadRequestException(
-  //       'Cannot cancel appointment within 2 hours of the appointment',
-  //     );
-  //   }
-
-  //   appointment.status = AppointmentStatus.CANCELLED;
-
-  //   appointment.cancellationReason = reason;
-
-  //   await this.appointmentRepository.save(appointment);
-
-  //   return {
-  //     message: 'Appointment cancelled successfully',
-  //     appointment,
-  //   };
-  // }
-
   async patientCancelAppointment(
     patientId: number,
     appointmentId: number,
     dto: CancelAppointmentDto,
   ) {
-    console.log('Cancel DTO:', dto); // Debug log to check the incoming DTO
-    const appointment = await this.appointmentRepository.findOne({
-      where: {
-        id: appointmentId,
-        patient: { id: patientId },
-      },
-      relations: ['patient', 'cancellationReason'],
-    });
+    const appointment =
+      await this.appointmentService.findAppointmentById(appointmentId);
 
-    if (!appointment) {
-      throw new NotFoundException('Appointment not found');
+    if (appointment.patient.userId !== patientId) {
+      throw new BadRequestException('Appointment belong to another patient');
     }
 
     if (appointment.status === AppointmentStatus.CANCELLED) {
@@ -285,13 +230,7 @@ export class PatientAppointmentsService {
       throw new BadRequestException('Cannot cancel this appointment');
     }
 
-    const newReason = this.cancellationReasonRepository.create({
-      reason: dto.reason,
-    });
-
-    await this.cancellationReasonRepository.save(newReason);
-
-    appointment.cancellationReason = newReason;
+    appointment.cancellation_reason = dto.reason;
     appointment.status = AppointmentStatus.CANCELLED;
 
     await this.appointmentRepository.save(appointment);

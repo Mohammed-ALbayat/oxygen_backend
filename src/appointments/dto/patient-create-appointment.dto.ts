@@ -1,14 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsInt, IsString } from 'class-validator';
 
-export class CreateAppointmentDto {
+export class PatientCreateAppointmentDto {
   @ApiProperty()
   @IsInt()
   doctorId: number;
-
-  @ApiProperty()
-  @IsInt()
-  patientId: number;
 
   @ApiProperty()
   @IsDateString()

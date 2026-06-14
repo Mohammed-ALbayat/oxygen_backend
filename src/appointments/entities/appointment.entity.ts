@@ -20,7 +20,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
-import { CancellationReason } from './cancellation.entity';
 
 export enum AppointmentStatus {
   PENDING = 'pending',
@@ -83,28 +82,11 @@ export class Appointment {
   @IsEnum(PaymentStatus)
   payment_status: PaymentStatus;
 
-  // @Column('decimal', {
-  //   precision: 10,
-  //   scale: 2,
-  //   default: 0,
-  // })
-  // @IsNumber()
-  // @Min(0)
-  // reservation_amount: number;
-
-  // @Column({ default: false })
-  // @IsBoolean()
-  // is_rescheduled: boolean;
-
-  @Column('int', { nullable: true })
+  @Column({ nullable: true })
+  @IsString()
   @IsOptional()
-  @ManyToOne(() => CancellationReason, { nullable: true })
-  @JoinColumn({ name: 'cancellation_reason_id' })
-  cancellationReason: CancellationReason | null;
-  // @Column('text', { nullable: true })
-  // @IsOptional()
-  // @IsString()
-  // custom_cancellation_reason: string | null;
+  cancellation_reason?: string;
+
   @Column({ default: false })
   @IsBoolean()
   is_updated_by_patient: boolean;

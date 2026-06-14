@@ -11,11 +11,10 @@ import {
   PaymentStatus,
 } from './entities/appointment.entity';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
-import { DepartmentDoctorsDto } from './dto/department-doctors.dto';
-import { calculateEndTime, getDayEnum } from './doctor-schedule.utils';
-import { generateTimeSlots } from './doctor-schedule.utils';
+import { calculateEndTime, getDayEnum } from './utils/doctor-schedule.utils';
+import { generateTimeSlots } from './utils/doctor-schedule.utils';
 import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.entity';
-import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { AdminCreateAppointmentDto } from './dto/admin-create-appointment.dto';
 import { Doctor } from 'src/doctors/entities/doctor.entity';
 
 @Injectable()
@@ -72,7 +71,7 @@ export class AppointmentsService {
 
     const schedule = await this.scheduleRepository.findOne({
       where: {
-        doctor: { id: doctorId },
+        doctor: { user_id: doctorId },
         day_of_week: dayEnum,
         is_active: true,
       },
@@ -115,9 +114,12 @@ export class AppointmentsService {
     };
   }
 
-  async createAppointment(createDto: CreateAppointmentDto) {
-    const { doctorId, patientId, date, start_time } = createDto;
-
+  async createAppointment(
+    doctorId: number,
+    patientId: number,
+    date: string,
+    start_time: string,
+  ) {
     const targetDate = date;
     const dayEnum = getDayEnum(new Date(date));
 
@@ -127,7 +129,7 @@ export class AppointmentsService {
     }
 
     const doctor = await this.doctorRepository.findOne({
-      where: { id: doctorId },
+      where: { user_id: doctorId },
       relations: ['specialty'],
     });
 
@@ -137,7 +139,7 @@ export class AppointmentsService {
 
     const schedule = await this.scheduleRepository.findOne({
       where: {
-        doctor: { id: doctorId },
+        doctor: { user_id: doctorId },
         day_of_week: dayEnum,
         is_active: true,
       },
@@ -190,8 +192,8 @@ export class AppointmentsService {
     }
 
     const appointment = this.appointmentRepository.create({
-      doctor: { id: doctorId },
-      patient: { id: patientId },
+      doctor: { user_id: doctorId },
+      patient: { userId: patientId },
       department: doctor.specialty,
       appointment_date: targetDate,
       start_time,
@@ -206,5 +208,18 @@ export class AppointmentsService {
       message: 'Appointment booked successfully',
       appointment,
     };
+  }
+
+  async findAppointmentById(appointmentId: number) {
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id: appointmentId },
+      relations: ['patient', 'doctor'],
+    });
+
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found');
+    }
+
+    return appointment;
   }
 }
