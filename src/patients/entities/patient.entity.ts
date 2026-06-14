@@ -1,11 +1,5 @@
 import { User } from 'src/users/entities/user.entity';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
 
 export enum BloodType {
   A_POSITIVE = 'A+',
@@ -20,8 +14,8 @@ export enum BloodType {
 
 @Entity('patients')
 export class Patient {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryColumn({ name: 'user_id' })
+  userId: number;
 
   @OneToOne(() => User, (user) => user.patient, {
     onDelete: 'CASCADE',

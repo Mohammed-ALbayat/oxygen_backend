@@ -73,6 +73,7 @@ export class DemoDoctorSeed {
       const savedUser = await this.userRepository.save(user);
 
       doctor = this.doctorRepository.create({
+        user_id: savedUser.id,
         user: savedUser,
         specialty,
         specialization: 'General Practice',
@@ -90,7 +91,7 @@ export class DemoDoctorSeed {
     for (const entry of DEMO_SCHEDULE_DAYS) {
       const existing = await this.doctorScheduleRepository.findOne({
         where: {
-          doctor: { id: doctor.id },
+          doctor: { user_id: doctor.user_id },
           day_of_week: entry.day_of_week,
         },
       });

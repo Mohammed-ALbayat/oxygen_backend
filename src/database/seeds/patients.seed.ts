@@ -37,6 +37,7 @@ export class PatientsSeed {
       const savedUser = await this.userRepository.save(user);
 
       const patient = this.patientRepository.create({
+        userId: savedUser.id,
         user: savedUser,
         address: `Damascus Street ${i}`,
         blood_type: i % 2 === 0 ? BloodType.A_POSITIVE : BloodType.O_POSITIVE,

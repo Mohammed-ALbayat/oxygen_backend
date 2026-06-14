@@ -1,16 +1,10 @@
 import { User } from 'src/users/entities/user.entity';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
 
 @Entity('secretaries')
 export class Secretary {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryColumn()
+  user_id: number;
 
   @OneToOne(() => User, (user) => user.secretary, {
     onDelete: 'CASCADE',

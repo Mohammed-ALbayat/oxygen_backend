@@ -60,6 +60,7 @@ export class DoctorsSeed {
         specialties[Math.floor(Math.random() * specialties.length)];
 
       const doctor = this.doctorRepository.create({
+        user_id: savedUser.id,
         user: savedUser,
         specialty: randomSpecialty,
         specialization: `Specialist ${i}`,
@@ -73,10 +74,11 @@ export class DoctorsSeed {
 
       for (let j = 0; j < 3; j++) {
         const schedule = this.doctorScheduleRepository.create({
-          doctor: doctor,
+          doctor,
           day_of_week: DayOfWeek.FRIDAY,
           start_time: '09:00',
           end_time: '17:00',
+          slot_duration: 30,
         });
         await this.doctorScheduleRepository.save(schedule);
       }

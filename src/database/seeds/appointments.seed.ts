@@ -71,7 +71,7 @@ export class AppointmentsSeed {
     }
 
     const existingCount = await this.appointmentRepository.count({
-      where: { doctor: { id: doctor.id } },
+      where: { doctor: { user_id: doctor.user_id } },
     });
 
     if (existingCount >= DEMO_APPOINTMENTS.length) {
@@ -89,8 +89,6 @@ export class AppointmentsSeed {
     }
 
     const patients = await this.ensureDemoPatients();
-
-    const departmentId = doctor.specialty?.id ?? 1;
 
     for (let i = existingCount; i < DEMO_APPOINTMENTS.length; i++) {
       const template = DEMO_APPOINTMENTS[i];
@@ -134,6 +132,7 @@ export class AppointmentsSeed {
         const savedUser = await this.userRepository.save(user);
 
         patient = this.patientRepository.create({
+          userId: savedUser.id,
           user: savedUser,
           address: `Demo Street ${i}`,
           blood_type: BloodType.O_POSITIVE,

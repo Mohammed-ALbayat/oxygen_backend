@@ -41,8 +41,8 @@ export class SecretariesSeed {
 
       // إنشاء secretary profile
       const secretary = this.secretaryRepository.create({
+        user_id: savedUser.id,
         user: savedUser,
-
         shift_start: '08:00:00',
 
         shift_end: '16:00:00',

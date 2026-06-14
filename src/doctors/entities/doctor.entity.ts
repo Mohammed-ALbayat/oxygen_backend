@@ -8,13 +8,13 @@ import {
   ManyToOne,
   OneToMany,
   OneToOne,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
 } from 'typeorm';
 
 @Entity('doctors')
 export class Doctor {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryColumn()
+  user_id: number;
 
   @OneToOne(() => User, (user) => user.doctor, {
     onDelete: 'CASCADE',

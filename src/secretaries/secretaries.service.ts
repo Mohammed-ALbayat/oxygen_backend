@@ -58,7 +58,7 @@ export class SecretariesService {
 
   async updateSecretary(id: number, updateData: UpdateSecretaryDto) {
     const secretary = await this.secretaryRepository.findOne({
-      where: { id },
+      where: { user_id: id },
       relations: ['user'],
     });
 

@@ -16,7 +16,7 @@ export class DoctorSchedulesService {
 
   async findByDoctorId(doctorId: number) {
     const doctor = await this.doctorRepository.findOne({
-      where: { id: doctorId },
+      where: { user_id: doctorId },
     });
 
     if (!doctor) {
@@ -24,7 +24,7 @@ export class DoctorSchedulesService {
     }
 
     const schedules = await this.scheduleRepository.find({
-      where: { doctor: { id: doctorId } },
+      where: { doctor: { user_id: doctorId } },
       order: { day_of_week: 'ASC', start_time: 'ASC' },
     });
 
@@ -43,7 +43,7 @@ export class DoctorSchedulesService {
 
   async updateWorkingHours(doctorId: number, dto: UpdateDoctorWorkingHoursDto) {
     const doctor = await this.doctorRepository.findOne({
-      where: { id: doctorId },
+      where: { user_id: doctorId },
     });
 
     if (!doctor) {
@@ -55,7 +55,7 @@ export class DoctorSchedulesService {
     for (const entry of dto.schedules) {
       let schedule = await this.scheduleRepository.findOne({
         where: {
-          doctor: { id: doctorId },
+          doctor: { user_id: doctorId },
           day_of_week: entry.day_of_week,
         },
       });
