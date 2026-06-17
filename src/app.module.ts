@@ -12,6 +12,7 @@ import { SecretariesModule } from './secretaries/secretaries.module';
 import { DoctorSchedulesModule } from './doctor-schedules/doctor-schedules.module';
 import { SeedModule } from './database/seeds/seed.module';
 import { AppointmentsModule } from './appointments/appointments.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AppointmentsModule } from './appointments/appointments.module';
     SecretariesModule,
     DoctorSchedulesModule,
     AppointmentsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -9,6 +9,7 @@ import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { User } from 'src/users/entities/user.entity';
 import { UserRole } from 'src/users/enums/user-roles.enum';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
+import { DoctorMeResponseDto } from './dto/doctor-me-response.dto';
 
 @Injectable()
 export class DoctorsService {
@@ -57,6 +58,33 @@ export class DoctorsService {
     });
     await this.doctorRepository.save(doctor);
     return savedUser;
+  }
+
+  async getMe(user: User): Promise<DoctorMeResponseDto> {
+    const doctor = await this.doctorRepository.findOne({
+      where: { user_id: user.id },
+      relations: ['specialty', 'user', 'schedules'],
+    });
+
+    if (!doctor) {
+      throw new NotFoundException('الطبيب غير موجود');
+    }
+
+    const response = new DoctorMeResponseDto();
+    response.id = doctor.user_id;
+    response.full_name = doctor.user.full_name;
+    response.phone = doctor.user.phone;
+    response.birth_date = doctor.user.birth_date;
+    response.gender = doctor.user.gender;
+    response.specialty = doctor.specialty;
+    response.schedules = doctor.schedules;
+    response.specialization = doctor.specialization;
+    response.bio = doctor.bio;
+    response.examination_price = doctor.examination_price;
+    response.doctor_percentage = doctor.doctor_percentage;
+    response.average_rating = doctor.average_rating;
+
+    return response;
   }
 
   async updateDoctor(id: number, updateData: UpdateDoctorFullDto) {

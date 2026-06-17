@@ -5,6 +5,7 @@ import {
   Patch,
   Param,
   UseGuards,
+  Get,
 } from '@nestjs/common';
 import { SecretariesService } from './secretaries.service';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -13,8 +14,11 @@ import { Roles } from 'src/auth/roles.decorator';
 import { CreateSecretaryDto } from './dto/create-secretary.dto';
 import { UserRole } from 'src/users/enums/user-roles.enum';
 import { UpdateSecretaryDto } from './dto/update-secretary.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags, ApiOkResponse } from '@nestjs/swagger';
 import { ApiEndpoint } from 'src/common/swagger/api-endpoint.decorator';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { User } from 'src/users/entities/user.entity';
+import { SecretaryMeResponseDto } from './dto/secretary-me-response.dto';
 
 @ApiTags('Secretaries')
 @ApiBearerAuth()
@@ -28,6 +32,17 @@ export class SecretariesController {
   @ApiEndpoint('Create a new secretary account', [UserRole.ADMIN])
   async create(@Body() createSecretaryDto: CreateSecretaryDto) {
     return this.secretariesService.createSecretary(createSecretaryDto);
+  }
+
+  @Get('me')
+  @Roles(UserRole.SECRETARY)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOkResponse({ type: SecretaryMeResponseDto })
+  @ApiEndpoint('Get current secretary profile and account details', [
+    UserRole.SECRETARY,
+  ])
+  getMe(@CurrentUser() user: User): Promise<SecretaryMeResponseDto> {
+    return this.secretariesService.getMe(user);
   }
 
   @Patch(':id')

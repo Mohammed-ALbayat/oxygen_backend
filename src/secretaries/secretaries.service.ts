@@ -9,6 +9,7 @@ import { ConflictException } from '@nestjs/common';
 import { Secretary } from './entities/secretary.entity';
 import { UpdateSecretaryDto } from './dto/update-secretary.dto';
 import { NotFoundException } from '@nestjs/common';
+import { SecretaryMeResponseDto } from './dto/secretary-me-response.dto';
 
 @Injectable()
 export class SecretariesService {
@@ -54,6 +55,28 @@ export class SecretariesService {
       message: 'Secretary created successfully',
       user_id: savedUser.id,
     };
+  }
+
+  async getMe(user: User): Promise<SecretaryMeResponseDto> {
+    const secretary = await this.secretaryRepository.findOne({
+      where: { user_id: user.id },
+      relations: ['user'],
+    });
+
+    if (!secretary) {
+      throw new NotFoundException('السكرتير غير موجود');
+    }
+
+    const response = new SecretaryMeResponseDto();
+    response.id = secretary.user_id;
+    response.full_name = secretary.user.full_name;
+    response.phone = secretary.user.phone;
+    response.birth_date = secretary.user.birth_date;
+    response.gender = secretary.user.gender;
+    response.shift_start = secretary.shift_start;
+    response.shift_end = secretary.shift_end;
+
+    return response;
   }
 
   async updateSecretary(id: number, updateData: UpdateSecretaryDto) {
