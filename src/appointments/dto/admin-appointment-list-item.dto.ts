@@ -45,5 +45,5 @@ export class AdminAppointmentListItemDto {
   patient_name: string | null;
 
   @ApiPropertyOptional()
-  cancellation_reason_id: number | null;
+  cancellation_reason: string | null;
 }

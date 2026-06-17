@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import {
   Appointment,
   AppointmentStatus,
@@ -15,6 +15,11 @@ import { calculateEndTime, getDayEnum } from './utils/doctor-schedule.utils';
 import { generateTimeSlots } from './utils/doctor-schedule.utils';
 import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.entity';
 import { Doctor } from 'src/doctors/entities/doctor.entity';
+import {
+  formatLocalDate,
+  extractDateString,
+  generateTargetDates,
+} from './utils/date.helper';
 
 @Injectable()
 export class AppointmentsService {
@@ -29,118 +34,35 @@ export class AppointmentsService {
     private specialtyRepository: Repository<Specialty>,
   ) {}
 
-  // لا تنسَ جعل المعامل date اختيارياً بوضع علامة ?
   async getDoctorSlots(doctorId: number, date?: string) {
-    const targetDates: Date[] = [];
     const isSingleDate = !!date;
 
-    if (isSingleDate) {
-      // 1. حيلة احترافية: تمرير السنة والشهر واليوم يدوياً لضمان إنشاء التاريخ بالتوقيت المحلي وليس UTC
-      const [year, month, day] = date.split('-');
-      targetDates.push(new Date(Number(year), Number(month) - 1, Number(day)));
-    } else {
-      const today = new Date();
-      // تصفير الوقت لمنتصف الليل بالتوقيت المحلي لضمان عدم تداخل الأيام
-      today.setHours(0, 0, 0, 0);
+    const targetDates = generateTargetDates(date);
+    const startDate = formatLocalDate(targetDates[0]);
+    const endDate = formatLocalDate(targetDates[targetDates.length - 1]);
 
-      for (let i = 0; i < 14; i++) {
-        const nextDate = new Date(today);
-        nextDate.setDate(today.getDate() + i);
-        targetDates.push(nextDate);
-      }
-    }
-
-    // 2. التعديل الأهم: دالة تعطينا التاريخ النصي بناءً على التوقيت المحلي حصراً
-    const formatDate = (d: Date) => {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-
-    const startDate = formatDate(targetDates[0]);
-    const endDate = formatDate(targetDates[targetDates.length - 1]);
-
-    // --- من هنا يبدأ استعلام قاعدة البيانات، الباقي يبقى كما هو تماماً ---
     const schedules = await this.scheduleRepository.find({
-      where: {
-        doctor: { user_id: doctorId },
-        is_active: true,
-      },
+      where: { doctor: { user_id: doctorId }, is_active: true },
     });
 
     if (isSingleDate && schedules.length === 0) {
       throw new NotFoundException('No schedule found for this doctor');
     }
 
-    // 3. جلب جميع المواعيد المحجوزة للطبيب ضمن نطاق التواريخ مرة واحدة
-    const query = this.appointmentRepository
-      .createQueryBuilder('a')
-      .where('a.doctor_id = :doctorId', { doctorId });
+    const appointments = await this.fetchAppointmentsWithinRange(
+      doctorId,
+      startDate,
+      endDate,
+      isSingleDate,
+    );
 
-    if (isSingleDate) {
-      query.andWhere('a.appointment_date = :startDate', { startDate });
-    } else {
-      query
-        .andWhere('a.appointment_date >= :startDate', { startDate })
-        .andWhere('a.appointment_date <= :endDate', { endDate });
-    }
+    const availableDays = this.calculateAvailableDays(
+      targetDates,
+      schedules,
+      appointments,
+      isSingleDate,
+    );
 
-    const appointments = await query.getMany();
-
-    // 4. بناء الرد النهائي وتوزيع الأوقات على الأيام
-    const availableDays: any = [];
-
-    for (const currentDate of targetDates) {
-      const dateString = formatDate(currentDate);
-      const dayEnum = getDayEnum(currentDate);
-
-      // البحث عن جدول الطبيب الخاص بهذا اليوم المتاح في الذاكرة
-      const schedule = schedules.find((s) => s.day_of_week === dayEnum);
-
-      if (!schedule) {
-        // إذا كان الطلب ليوم محدد، نرمي خطأ كما في المنطق السابق
-        if (isSingleDate) {
-          throw new NotFoundException(
-            'No schedule found for this doctor on this day',
-          );
-        }
-        // أما إذا كنا نجلب 14 يوماً، ببساطة نتجاوز الأيام التي لا يعمل بها الطبيب
-        continue;
-      }
-
-      const allSlots = generateTimeSlots(
-        schedule.start_time,
-        schedule.end_time,
-        schedule.slot_duration,
-      );
-
-      // تصفية المواعيد الخاصة بهذا اليوم فقط
-      const dayAppointments = appointments.filter((a) => {
-        // تحويل تاريخ الموعد القادم من قاعدة البيانات لضمان دقة المقارنة
-        const appDate = formatDate(new Date(a.appointment_date));
-        return appDate === dateString;
-      });
-
-      const bookedSlots = dayAppointments.map((a) => a.start_time.slice(0, 5));
-
-      const slots = allSlots.map((slot) => ({
-        time: slot,
-        isBooked:
-          bookedSlots.includes(slot) &&
-          !dayAppointments
-            .find((a) => a.start_time.slice(0, 5) === slot)
-            ?.status.includes(AppointmentStatus.CANCELLED),
-      }));
-
-      availableDays.push({
-        date: dateString,
-        day: dayEnum,
-        slots,
-      });
-    }
-
-    // إرجاع النتيجة بشكل موحد
     return {
       doctorId,
       availableDays,
@@ -154,10 +76,10 @@ export class AppointmentsService {
     start_time: string,
   ) {
     const targetDate = date;
-    const dayEnum = getDayEnum(new Date(date));
 
     const today = new Date();
-    if (new Date(targetDate) < new Date(today.toDateString())) {
+    today.setHours(0, 0, 0, 0);
+    if (new Date(targetDate) < today) {
       throw new BadRequestException('Cannot book an appointment in the past');
     }
 
@@ -170,59 +92,19 @@ export class AppointmentsService {
       throw new NotFoundException('Doctor not found');
     }
 
-    const schedule = await this.scheduleRepository.findOne({
-      where: {
-        doctor: { user_id: doctorId },
-        day_of_week: dayEnum,
-        is_active: true,
-      },
-    });
-
-    if (!schedule) {
-      throw new BadRequestException('Doctor not available on this day');
-    }
-
-    const allSlots = generateTimeSlots(
-      schedule.start_time,
-      schedule.end_time,
-      schedule.slot_duration,
+    const schedule = await this.verifyDoctorSchedule(
+      doctorId,
+      targetDate,
+      start_time,
     );
 
-    if (!allSlots.includes(start_time)) {
-      throw new BadRequestException('Invalid time slot');
-    }
-
-    // التحقق من وجود تعارض في مواعيد المريض والطبيب بدون اعتبار المواعيد الملغاة
-
-    const patientConflict = await this.appointmentRepository
-      .createQueryBuilder('a')
-      .where('a.patient_id = :patientId', { patientId })
-      .andWhere('a.appointment_date = :date', { date: targetDate })
-      .andWhere('a.start_time = :start_time', { start_time })
-      .andWhere('a.status != :cancelledStatus', {
-        cancelledStatus: AppointmentStatus.CANCELLED,
-      })
-      .getOne();
-
-    if (patientConflict) {
-      throw new BadRequestException(
-        'Patient already has an appointment at this time',
-      );
-    }
-
-    const doctorConflict = await this.appointmentRepository
-      .createQueryBuilder('a')
-      .where('a.doctor_id = :doctorId', { doctorId })
-      .andWhere('a.appointment_date = :date', { date: targetDate })
-      .andWhere('a.start_time = :start_time', { start_time })
-      .andWhere('a.status != :cancelledStatus', {
-        cancelledStatus: AppointmentStatus.CANCELLED,
-      })
-      .getOne();
-
-    if (doctorConflict) {
-      throw new BadRequestException('This slot is already booked');
-    }
+    await this.ensureNoConflicts(
+      doctorId,
+      patientId,
+      targetDate,
+      start_time,
+      0,
+    );
 
     const appointment = this.appointmentRepository.create({
       doctor: { user_id: doctorId },
@@ -246,7 +128,7 @@ export class AppointmentsService {
   async findAppointmentById(appointmentId: number) {
     const appointment = await this.appointmentRepository.findOne({
       where: { id: appointmentId },
-      relations: ['patient', 'doctor'],
+      relations: ['patient', 'doctor', 'department'],
     });
 
     if (!appointment) {
@@ -291,5 +173,268 @@ export class AppointmentsService {
         })),
       })),
     }));
+  }
+
+  async updateAppointment(
+    appointment: Appointment,
+    date: string | undefined,
+    start_time: string | undefined,
+  ) {
+    this.checkAppointmentEligibility(appointment);
+
+    const newDate = date ?? extractDateString(appointment.appointment_date);
+    const newStartTime = start_time ?? appointment.start_time;
+
+    this.validateTimeConstraints(appointment, newDate);
+
+    const schedule = await this.verifyDoctorSchedule(
+      appointment.doctor.user_id,
+      newDate,
+      newStartTime,
+    );
+
+    await this.ensureNoConflicts(
+      appointment.doctor.user_id,
+      appointment.patient.userId,
+      newDate,
+      newStartTime,
+      appointment.id,
+    );
+
+    appointment.appointment_date = new Date(newDate);
+    appointment.start_time = newStartTime;
+    appointment.end_time = calculateEndTime(
+      newStartTime,
+      schedule.slot_duration,
+    );
+    appointment.is_updated_by_patient = true;
+
+    await this.appointmentRepository.save(appointment);
+
+    return {
+      message: 'Appointment rescheduled successfully',
+      appointment,
+    };
+  }
+
+  async cancelAppointment(appointment: Appointment, reason: string) {
+    this.checkAppointmentEligibility(appointment);
+
+    appointment.cancellation_reason = reason;
+    appointment.status = AppointmentStatus.CANCELLED;
+
+    await this.appointmentRepository.save(appointment);
+
+    return {
+      message: 'Appointment cancelled successfully',
+      appointment,
+    };
+  }
+
+  /**
+   * Validates whether the current status of the appointment allows it to be rescheduled.
+   */
+  private checkAppointmentEligibility(appointment: Appointment) {
+    if (appointment.status === AppointmentStatus.CANCELLED) {
+      throw new BadRequestException('Cannot update a cancelled appointment');
+    }
+    if (
+      [AppointmentStatus.START, AppointmentStatus.COMPLETE].includes(
+        appointment.status,
+      )
+    ) {
+      throw new BadRequestException(
+        'This appointment can no longer be modified',
+      );
+    }
+  }
+
+  /**
+   * Ensures the new appointment date is not in the past and complies with the minimum 24-hour notice policy for modifications.
+   */
+  private validateTimeConstraints(
+    appointment: Appointment,
+    targetDateString: string,
+  ) {
+    const targetDate = new Date(targetDateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (targetDate < today) {
+      throw new BadRequestException('Cannot set appointment date in the past');
+    }
+
+    const originalAppointmentDateTime = new Date(
+      `${appointment.appointment_date}T${appointment.start_time}`,
+    );
+    const now = new Date();
+    const hoursDifference =
+      (originalAppointmentDateTime.getTime() - now.getTime()) /
+      (1000 * 60 * 60);
+
+    if (hoursDifference < 24) {
+      throw new BadRequestException(
+        'Appointments cannot be modified within 24 hours',
+      );
+    }
+  }
+
+  /**
+   * Confirms that the doctor has an active schedule on the requested day and that the selected time falls within their valid working hours.
+   */
+  private async verifyDoctorSchedule(
+    doctorId: number,
+    targetDateString: string,
+    requestedTime: string,
+  ) {
+    const targetDate = new Date(targetDateString);
+    const dayEnum = getDayEnum(targetDate);
+
+    const schedule = await this.scheduleRepository.findOne({
+      where: {
+        doctor: { user_id: doctorId },
+        day_of_week: dayEnum,
+        is_active: true,
+      },
+    });
+
+    if (!schedule)
+      throw new BadRequestException('Doctor not available on this day');
+    if (schedule.slot_duration <= 0)
+      throw new BadRequestException(
+        'Doctor schedule is configured incorrectly',
+      );
+
+    const allSlots = generateTimeSlots(
+      schedule.start_time,
+      schedule.end_time,
+      schedule.slot_duration,
+    );
+    if (!allSlots.includes(requestedTime)) {
+      throw new BadRequestException('Selected time is outside doctor schedule');
+    }
+
+    return schedule;
+  }
+
+  /**
+   * Checks for any scheduling overlaps to ensure that neither the doctor nor the patient has another active appointment at the requested time.
+   */
+  private async ensureNoConflicts(
+    doctorId: number,
+    patientId: number,
+    date: string,
+    startTime: string,
+    currentAppointmentId: number,
+  ) {
+    const [doctorConflict, patientConflict] = await Promise.all([
+      this.appointmentRepository.findOne({
+        where: {
+          doctor: { user_id: doctorId },
+          appointment_date: new Date(date),
+          start_time: startTime,
+          id: Not(currentAppointmentId),
+          status: Not(AppointmentStatus.CANCELLED),
+        },
+      }),
+      this.appointmentRepository.findOne({
+        where: {
+          patient: { userId: patientId },
+          appointment_date: new Date(date),
+          start_time: startTime,
+          id: Not(currentAppointmentId),
+          status: Not(AppointmentStatus.CANCELLED),
+        },
+      }),
+    ]);
+
+    if (doctorConflict)
+      throw new BadRequestException('This slot is already booked');
+    if (patientConflict)
+      throw new BadRequestException(
+        'You already have another appointment at this time',
+      );
+  }
+
+  /**
+   * Fetches all booked appointments for a specific doctor within a given date range.
+   */
+  private async fetchAppointmentsWithinRange(
+    doctorId: number,
+    startDate: string,
+    endDate: string,
+    isSingleDate: boolean,
+  ) {
+    const query = this.appointmentRepository
+      .createQueryBuilder('a')
+      .where('a.doctor_id = :doctorId', { doctorId });
+
+    if (isSingleDate) {
+      query.andWhere('a.appointment_date = :startDate', { startDate });
+    } else {
+      query
+        .andWhere('a.appointment_date >= :startDate', { startDate })
+        .andWhere('a.appointment_date <= :endDate', { endDate });
+    }
+
+    return await query.getMany();
+  }
+
+  /**
+   * Intersects the doctor's schedules with booked appointments to extract available time slots for each requested day.
+   */
+  private calculateAvailableDays(
+    targetDates: Date[],
+    schedules: any[],
+    appointments: any[],
+    isSingleDate: boolean,
+  ) {
+    const availableDays: any = [];
+
+    for (const currentDate of targetDates) {
+      const dateString = formatLocalDate(currentDate);
+      const dayEnum = getDayEnum(currentDate);
+
+      const schedule = schedules.find((s) => s.day_of_week === dayEnum);
+
+      if (!schedule) {
+        if (isSingleDate) {
+          throw new NotFoundException(
+            'No schedule found for this doctor on this day',
+          );
+        }
+        continue;
+      }
+
+      const allSlots = generateTimeSlots(
+        schedule.start_time,
+        schedule.end_time,
+        schedule.slot_duration,
+      );
+
+      const dayAppointments = appointments.filter((a) => {
+        const appDate = formatLocalDate(new Date(a.appointment_date));
+        return appDate === dateString;
+      });
+
+      const bookedSlots = dayAppointments.map((a) => a.start_time.slice(0, 5));
+
+      const slots = allSlots.map((slot) => ({
+        time: slot,
+        isBooked:
+          bookedSlots.includes(slot) &&
+          !dayAppointments
+            .find((a) => a.start_time.slice(0, 5) === slot)
+            ?.status.includes(AppointmentStatus.CANCELLED),
+      }));
+
+      availableDays.push({
+        date: dateString,
+        day: dayEnum,
+        slots,
+      });
+    }
+
+    return availableDays;
   }
 }

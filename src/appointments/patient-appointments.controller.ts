@@ -20,10 +20,11 @@ import { PatientUpdateAppointmentDto } from './dto/patient-update-appointment.dt
 import { PatientCreateAppointmentDto } from './dto/patient-create-appointment.dto';
 import { PatientAppointmentsService } from './patient-appointments.service';
 import { AppointmentStatus } from './entities/appointment.entity';
-import { ApiQuery } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AppointmentsService } from './appointments.service';
 
 @ApiBearerAuth()
+@ApiTags('Appointments Patients')
 @Controller('patient/appointments')
 @Roles(UserRole.PATIENT)
 @UseGuards(JwtAuthGuard, RolesGuard)

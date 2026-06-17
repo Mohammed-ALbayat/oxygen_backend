@@ -1,18 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { Repository } from 'typeorm';
 import { Appointment, AppointmentStatus } from './entities/appointment.entity';
 import { DoctorAppointmentDto } from './dto/doctor-appointment-list-item.dto';
-import { BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class DoctorAppointmentsService {
   constructor(
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
-    @InjectRepository(Specialty)
-    private specialtyRepository: Repository<Specialty>,
   ) {}
 
   async getDoctorAppointments(
@@ -61,7 +57,7 @@ export class DoctorAppointmentsService {
       return {
         id: appointment.id,
 
-        patient_id: appointment.patient.id,
+        patient_id: appointment.patient.userId,
         patient_name: appointment.patient.user.full_name,
 
         department_id: appointment.department?.id ?? null,
@@ -73,7 +69,7 @@ export class DoctorAppointmentsService {
 
         status: appointment.status,
 
-        cancellation_reason: appointment.cancellationReason?.reason ?? null,
+        cancellation_reason: appointment.cancellation_reason ?? null,
       };
     });
   }
