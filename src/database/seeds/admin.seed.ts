@@ -15,7 +15,6 @@ export class AdminSeed {
   ) {}
 
   async seed() {
-    // تحقق إذا الأدمن موجود
     const existingAdmin = await this.userRepository.findOne({
       where: {
         role: UserRole.ADMIN,

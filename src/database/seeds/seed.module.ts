@@ -1,56 +1,50 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { SeedService } from './seed.service';
-import { SeedController } from './seed.controller';
+import { DatabaseModule } from '../database.module';
+import { MainSeederService } from './main-seeder.service';
+import { AppointmentsSeed } from './appointments.seed';
+import { AdminSeed } from './admin.seed';
+import { DemoDoctorSeed } from './demo-doctor.seed';
+import { DoctorsSeed } from './doctors.seed';
+import { PatientsSeed } from './patients.seed';
+import { SecretariesSeed } from './secretaries.seed';
+import { SpecialtiesSeed } from './specialties.seed';
 import { User } from 'src/users/entities/user.entity';
-import { Specialty } from 'src/specialty/entities/specialty.entity';
+import { Appointment } from 'src/appointments/entities/appointment.entity';
 import { Doctor } from 'src/doctors/entities/doctor.entity';
 import { Patient } from 'src/patients/entities/patient.entity';
 import { Secretary } from 'src/secretaries/entities/secretary.entity';
+import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.entity';
-import { Appointment } from 'src/appointments/entities/appointment.entity';
-
-import { AdminSeed } from './admin.seed';
-import { DoctorsSeed } from './doctors.seed';
-import { SpecialtiesSeed } from './specialties.seed';
-import { PatientsSeed } from './patients.seed';
-import { SecretariesSeed } from './secretaries.seed';
-import { DemoDoctorSeed } from './demo-doctor.seed';
-import { AppointmentsSeed } from './appointments.seed';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    DatabaseModule,
     TypeOrmModule.forFeature([
       User,
+      Appointment,
       Doctor,
-      Specialty,
       Patient,
       Secretary,
+      Specialty,
       DoctorSchedule,
-      Appointment,
     ]),
   ],
-  controllers: [SeedController],
   providers: [
+    MainSeederService,
     AdminSeed,
+    AppointmentsSeed,
+    DemoDoctorSeed,
     DoctorsSeed,
-    SpecialtiesSeed,
     PatientsSeed,
     SecretariesSeed,
-    DemoDoctorSeed,
-    AppointmentsSeed,
-    SeedService,
-  ],
-  exports: [
-    AdminSeed,
-    DoctorsSeed,
     SpecialtiesSeed,
-    PatientsSeed,
-    SecretariesSeed,
-    DemoDoctorSeed,
-    AppointmentsSeed,
-    SeedService,
   ],
 })
 export class SeedModule {}

@@ -2,13 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
-import { AdminSeed } from './database/seeds/admin.seed';
-import { DoctorsSeed } from './database/seeds/doctors.seed';
-import { SpecialtiesSeed } from './database/seeds/specialties.seed';
-import { PatientsSeed } from './database/seeds/patients.seed';
-import { SecretariesSeed } from './database/seeds/secretaries.seed';
-import { DemoDoctorSeed } from './database/seeds/demo-doctor.seed';
-import { AppointmentsSeed } from './database/seeds/appointments.seed';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
@@ -30,22 +23,6 @@ async function bootstrap() {
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
-
-  const adminSeed = app.get(AdminSeed);
-  const specialtiesSeed = app.get(SpecialtiesSeed);
-  const doctorsSeed = app.get(DoctorsSeed);
-  const patientsSeed = app.get(PatientsSeed);
-  const secretariesSeed = app.get(SecretariesSeed);
-  const demoDoctorSeed = app.get(DemoDoctorSeed);
-  const appointmentsSeed = app.get(AppointmentsSeed);
-
-  await adminSeed.seed();
-  await specialtiesSeed.seed();
-  await doctorsSeed.seed();
-  await patientsSeed.seed();
-  await secretariesSeed.seed();
-  await demoDoctorSeed.seed();
-  await appointmentsSeed.seed();
 
   app.enableCors();
 
