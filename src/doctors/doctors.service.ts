@@ -76,6 +76,7 @@ export class DoctorsService {
     response.phone = doctor.user.phone;
     response.birth_date = doctor.user.birth_date;
     response.gender = doctor.user.gender;
+    response.image_path = doctor.user.image_path;
     response.specialty = doctor.specialty;
     response.schedules = doctor.schedules;
     response.specialization = doctor.specialization;

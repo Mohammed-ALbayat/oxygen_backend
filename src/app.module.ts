@@ -13,6 +13,7 @@ import { DoctorSchedulesModule } from './doctor-schedules/doctor-schedules.modul
 import { SeedModule } from './database/seeds/seed.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { AdminModule } from './admin/admin.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { AdminModule } from './admin/admin.module';
     DoctorSchedulesModule,
     AppointmentsModule,
     AdminModule,
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

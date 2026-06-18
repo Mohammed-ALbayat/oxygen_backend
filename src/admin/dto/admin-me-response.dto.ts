@@ -6,4 +6,5 @@ export class AdminMeResponseDto {
   phone: string;
   birth_date: Date | null;
   gender: Gender | null;
+  image_path: string | null | undefined;
 }

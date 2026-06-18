@@ -26,6 +26,7 @@ export class AdminService {
     response.phone = adminUser.phone;
     response.birth_date = adminUser.birth_date;
     response.gender = adminUser.gender;
+    response.image_path = adminUser.image_path;
 
     return response;
   }

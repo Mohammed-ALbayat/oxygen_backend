@@ -6,6 +6,7 @@ export class SecretaryMeResponseDto {
   phone: string;
   birth_date: Date | null;
   gender: Gender | null;
+  image_path: string | null | undefined;
   shift_start: string | undefined;
   shift_end: string | undefined;
 }

@@ -73,6 +73,7 @@ export class SecretariesService {
     response.phone = secretary.user.phone;
     response.birth_date = secretary.user.birth_date;
     response.gender = secretary.user.gender;
+    response.image_path = secretary.user.image_path;
     response.shift_start = secretary.shift_start;
     response.shift_end = secretary.shift_end;
 

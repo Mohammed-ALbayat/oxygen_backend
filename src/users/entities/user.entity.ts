@@ -60,6 +60,9 @@ export class User {
   })
   gender: Gender | null;
 
+  @Column({ type: 'varchar', nullable: true })
+  image_path?: string | null;
+
   @CreateDateColumn()
   created_at: Date;
 

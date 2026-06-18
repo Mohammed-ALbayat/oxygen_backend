@@ -8,6 +8,7 @@ export class DoctorMeResponseDto {
   phone: string;
   birth_date: Date | null;
   gender: Gender | null;
+  image_path: string | null | undefined;
   specialty: Specialty | null;
   schedules: DoctorSchedule[] | null;
   specialization: string | null;
