@@ -6,7 +6,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -19,6 +19,7 @@ import { AdminPatientsService } from './admin-patients.service';
 import { ApiEndpoint } from 'src/common/swagger/api-endpoint.decorator';
 
 @ApiBearerAuth()
+@ApiTags('Patients Admin')
 @Controller('admin/patients')
 export class AdminPatientsController {
   constructor(private readonly adminPatientsService: AdminPatientsService) {}

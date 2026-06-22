@@ -8,7 +8,7 @@ import { DoctorSchedulesService } from './doctor-schedules.service';
 import { UpdateDoctorWorkingHoursDto } from './dto/update-doctor-working-hours.dto';
 import { ApiEndpoint } from 'src/common/swagger/api-endpoint.decorator';
 
-@ApiTags('Admin Doctors')
+@ApiTags('Doctors Admin')
 @ApiBearerAuth()
 @Controller('admin/doctors')
 @Roles(UserRole.ADMIN)
