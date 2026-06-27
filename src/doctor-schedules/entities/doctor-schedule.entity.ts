@@ -41,7 +41,7 @@ export class DoctorSchedule {
   @Column()
   end_time: string;
 
-  @Column('int')
+  @Column({ type: 'int', default: 30 })
   slot_duration: number;
 
   @Column({ default: true })
