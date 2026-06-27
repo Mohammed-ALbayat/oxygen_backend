@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { SpecialtyService } from './specialty.service';
 import { CreateSpecialtyDto } from './dto/create-specialty.dto';
@@ -32,5 +33,20 @@ export class SpecialtyController {
   @Patch(':id')
   updateSpecialty(@Param('id') id: string, @Body() dto: UpdateSpecialtyDto) {
     return this.specialtyService.updateSpecialty(+id, dto);
+  }
+
+  @Get()
+  findAll() {
+    return this.specialtyService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.specialtyService.findOne(id);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.specialtyService.remove(id);
   }
 }
