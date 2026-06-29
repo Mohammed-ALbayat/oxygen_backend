@@ -8,6 +8,7 @@ import {
   Body,
   UseGuards,
   HttpCode,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Roles } from 'src/auth/roles.decorator';
@@ -57,9 +58,13 @@ export class UsersController {
     return this.usersService.resetPassword(id, newPassword);
   }
 
-  @Get('search')
+  @Get('search/:page/:limit')
   @Roles(UserRole.ADMIN)
-  search(@Query() query: any) {
-    return this.usersService.findAll(query);
+  search(
+    @Param('page', ParseIntPipe) page: number,
+    @Param('limit', ParseIntPipe) limit: number,
+    @Query() filters: { full_name?: string; phone?: string; role?: string },
+  ) {
+    return this.usersService.findAll(page, limit, filters);
   }
 }

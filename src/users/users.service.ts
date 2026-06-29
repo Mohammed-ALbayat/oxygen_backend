@@ -83,27 +83,28 @@ export class UsersService {
     return this.userRepository.find({ where: { role } });
   }
 
-  async findAll(query: any) {
-    const page = Number(query.page) || 1;
-    const limit = Number(query.limit) || 10;
-
+  async findAll(
+    page: number,
+    limit: number,
+    filters: { full_name?: string; phone?: string; role?: string },
+  ) {
     const qb = this.userRepository.createQueryBuilder('user');
 
-    if (query.full_name?.trim()) {
+    if (filters?.full_name?.trim()) {
       qb.andWhere('user.full_name LIKE :full_name', {
-        full_name: `%${query.full_name.trim()}%`,
+        full_name: `%${filters.full_name.trim()}%`,
       });
     }
 
-    if (query.phone?.trim()) {
+    if (filters?.phone?.trim()) {
       qb.andWhere('user.phone LIKE :phone', {
-        phone: `%${query.phone.trim()}%`,
+        phone: `%${filters.phone.trim()}%`,
       });
     }
 
-    if (query.role?.trim()) {
+    if (filters?.role?.trim()) {
       qb.andWhere('user.role = :role', {
-        role: query.role.trim(),
+        role: filters.role.trim(),
       });
     }
 
