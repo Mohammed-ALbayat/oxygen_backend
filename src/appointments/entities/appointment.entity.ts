@@ -17,9 +17,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
+import { Visit } from 'src/visits/entities/visit.entity';
 
 export enum AppointmentStatus {
   PENDING = 'pending',
@@ -94,6 +96,9 @@ export class Appointment {
   @ManyToOne(() => User)
   @JoinColumn({ name: 'created_by' })
   creator: User;
+
+  @OneToOne(() => Visit, (visit) => visit.appointment)
+  visit: Visit;
 
   @CreateDateColumn()
   created_at: Date;

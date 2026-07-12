@@ -23,6 +23,7 @@ export function toListItem(
     doctor_name: appointment.doctor.user.full_name,
     patient_id: appointment.patient.userId,
     patient_name: appointment.patient.user.full_name,
+    visit_id: appointment.visit?.id ?? null,
     cancellation_reason: appointment.cancellation_reason ?? null,
   };
 }

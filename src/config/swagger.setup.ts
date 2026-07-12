@@ -18,6 +18,9 @@ export function setupSwagger(app: INestApplication): void {
     { name: 'Appointments Admin' },
     { name: 'Appointments Doctor' },
     { name: 'Appointments Patients' },
+    { name: 'Visits Admin' },
+    { name: 'Visits Doctor' },
+    { name: 'Visits Patient' },
   ];
 
   const configBuilder = new DocumentBuilder()

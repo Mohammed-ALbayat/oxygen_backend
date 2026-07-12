@@ -14,6 +14,7 @@ import { SeedModule } from './database/seeds/seed.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { AdminModule } from './admin/admin.module';
 import { StorageModule } from './storage/storage.module';
+import { VisitsModule } from './visits/visits.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { StorageModule } from './storage/storage.module';
     AppointmentsModule,
     AdminModule,
     StorageModule,
+    VisitsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

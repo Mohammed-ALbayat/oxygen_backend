@@ -25,6 +25,7 @@ export class AdminAppointmentsService {
   ): Promise<AdminAppointmentListItemDto[]> {
     const query = this.appointmentRepository
       .createQueryBuilder('appointment')
+      .leftJoinAndSelect('appointment.visit', 'visit')
       .leftJoinAndSelect('appointment.patient', 'patient')
       .leftJoinAndSelect('patient.user', 'patientUser')
       .leftJoinAndSelect('appointment.doctor', 'doctor')

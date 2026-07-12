@@ -128,7 +128,7 @@ export class AppointmentsService {
   async findAppointmentById(appointmentId: number) {
     const appointment = await this.appointmentRepository.findOne({
       where: { id: appointmentId },
-      relations: ['patient', 'doctor', 'department'],
+      relations: ['patient', 'doctor', 'department', 'visit'],
     });
 
     if (!appointment) {
