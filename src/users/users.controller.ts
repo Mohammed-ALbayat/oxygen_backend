@@ -6,6 +6,8 @@ import {
   Param,
   Body,
   UseGuards,
+  HttpCode,
+  ParseIntPipe,
   Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -58,8 +60,13 @@ export class UsersController {
   }
 
   @Get('search')
+  @Roles(UserRole.ADMIN)
   @ApiEndpoint('Search and list users with optional filters', [UserRole.ADMIN])
-  search(@Query() query: any) {
-    return this.usersService.findAll(query);
+  search(
+    @Query('page', ParseIntPipe) page: number,
+    @Query('limit', ParseIntPipe) limit: number,
+    @Query() filters: { full_name?: string; phone?: string; role?: string },
+  ) {
+    return this.usersService.findAll(page, limit, filters);
   }
 }

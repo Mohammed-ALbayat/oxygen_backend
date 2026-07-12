@@ -25,12 +25,8 @@ export class SpecialtyService {
   }
 
   async updateSpecialty(id: number, dto: UpdateSpecialtyDto) {
-    const specialty = await this.specialtyRepository.findOne({ where: { id } });
-    if (!specialty) {
-      throw new NotFoundException('Specialty not found');
-    }
+    const specialty = await this.findOne(id);
 
-    // شوف اذا العنوان موجود مسبقا ماعدا العنوان الحالي
     if (dto.title && dto.title !== specialty.title) {
       const existing = await this.specialtyRepository.findOne({
         where: { title: dto.title, id: Not(id) },
@@ -42,5 +38,31 @@ export class SpecialtyService {
 
     Object.assign(specialty, dto);
     return this.specialtyRepository.save(specialty);
+  }
+
+  async findAll() {
+    return await this.specialtyRepository.find({
+      order: {
+        id: 'DESC',
+      },
+    });
+  }
+
+  async findOne(id: number) {
+    const specialty = await this.specialtyRepository.findOne({
+      where: { id },
+    });
+
+    if (!specialty) {
+      throw new NotFoundException(`Specialty with ID #${id} not found`);
+    }
+
+    return specialty;
+  }
+
+  async remove(id: number) {
+    const specialty = await this.findOne(id);
+    await this.specialtyRepository.remove(specialty);
+    return { deleted: true, id };
   }
 }
