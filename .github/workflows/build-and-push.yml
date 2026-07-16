@@ -4,7 +4,7 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - main # سيتم التشغيل فقط عند الرفع على فرع main
+      - deploy # سيتم التشغيل فقط عند الرفع على فرع deploy
 
 jobs:
   build:
