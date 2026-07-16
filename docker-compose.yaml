@@ -7,7 +7,7 @@ services:
       - MYSQL_HOST=db
       - MYSQL_PASSWORD=password
     ports:
-      - '3000:3000'
+      - '4000:4000'
     depends_on:
       db:
         condition: service_healthy
