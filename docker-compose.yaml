@@ -1,6 +1,6 @@
 services:
   backend-app:
-    image: oxygen:latest
+    image: mohammadalbayat/oxygen-backend:latest
     env_file:
       - .env
     environment:
