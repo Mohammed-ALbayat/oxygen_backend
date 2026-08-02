@@ -12,10 +12,12 @@ import { PatientAppointmentsController } from './patient-appointments.controller
 import { PatientAppointmentsService } from './patient-appointments.service';
 import { DoctorAppointmentsController } from './doctor-appointments.controller';
 import { DoctorAppointmentsService } from './doctor-appointments.service';
+import { PusherModule } from 'src/pusher/pusher.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Appointment, Specialty, DoctorSchedule, Doctor]),
+    PusherModule,
   ],
   controllers: [
     AdminAppointmentsController,

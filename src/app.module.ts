@@ -14,6 +14,7 @@ import { AppointmentsModule } from './appointments/appointments.module';
 import { AdminModule } from './admin/admin.module';
 import { StorageModule } from './storage/storage.module';
 import { VisitsModule } from './visits/visits.module';
+import { PusherService } from './pusher/pusher.service';
 
 @Module({
   imports: [
@@ -35,6 +36,6 @@ import { VisitsModule } from './visits/visits.module';
     VisitsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, PusherService],
 })
 export class AppModule {}
