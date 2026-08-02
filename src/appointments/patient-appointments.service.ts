@@ -6,6 +6,7 @@ import { CancelAppointmentDto } from './dto/patient-cancellation.dto';
 import { Appointment, AppointmentStatus } from './entities/appointment.entity';
 import { AppointmentsService } from './appointments.service';
 import { PatientCreateAppointmentDto } from './dto/patient-create-appointment.dto';
+import { PusherService } from '../pusher/pusher.service';
 
 @Injectable()
 export class PatientAppointmentsService {
@@ -14,6 +15,7 @@ export class PatientAppointmentsService {
     private appointmentRepository: Repository<Appointment>,
 
     private appointmentService: AppointmentsService,
+    private pusherService: PusherService,
   ) {}
 
   async findAllAppointment(
@@ -36,12 +38,20 @@ export class PatientAppointmentsService {
   }
 
   async createAppointment(patientId: number, dto: PatientCreateAppointmentDto) {
-    return this.appointmentService.createAppointment(
+    const appointment = await this.appointmentService.createAppointment(
       dto.doctorId,
       patientId,
       dto.date,
       dto.start_time,
     );
+
+    await this.pusherService.triggerEvent(
+      'secretary-channel',
+      'new-appointment',
+      appointment,
+    );
+
+    return appointment;
   }
 
   async patientUpdateAppointment(

@@ -20,7 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "db:seed": "ts-node -r tsconfig-paths/register src/database/seed.ts",
     "db:clear": "ts-node -r tsconfig-paths/register src/database/clear-db.ts",
-    "db:refresh": "npm run db:clear && npm run seed",
+    "db:refresh": "npm run db:clear && npm run db:seed",
     "db:drop": "ts-node -r tsconfig-paths/register src/database/drop-db.ts"
   },
   "dependencies": {
@@ -41,6 +41,7 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
+    "pusher": "^5.3.4",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "swagger-ui-express": "^5.0.1",

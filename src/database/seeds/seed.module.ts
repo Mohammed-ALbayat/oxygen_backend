@@ -18,14 +18,16 @@ import { Patient } from 'src/patients/entities/patient.entity';
 import { Secretary } from 'src/secretaries/entities/secretary.entity';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.entity';
+import { AppModule } from 'src/app.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env',
-    }),
-    DatabaseModule,
+    // ConfigModule.forRoot({
+    //   isGlobal: true,
+    //   envFilePath: '.env',
+    // }),
+    // DatabaseModule,
+    AppModule,
     TypeOrmModule.forFeature([
       User,
       Appointment,
