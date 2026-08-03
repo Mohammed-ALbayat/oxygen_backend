@@ -48,6 +48,14 @@ export class SpecialtyService {
     });
   }
 
+  async findAllPublished() {
+    return this.specialtyRepository.find({
+      where: { published: true },
+      select: ['id', 'title'],
+      order: { id: 'DESC' },
+    });
+  }
+
   async findOne(id: number) {
     const specialty = await this.specialtyRepository.findOne({
       where: { id },
