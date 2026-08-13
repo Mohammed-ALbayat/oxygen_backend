@@ -15,6 +15,7 @@ import { AdminModule } from './admin/admin.module';
 import { StorageModule } from './storage/storage.module';
 import { VisitsModule } from './visits/visits.module';
 import { PusherService } from './pusher/pusher.service';
+import { QueueModule } from './queue/queue.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { PusherService } from './pusher/pusher.service';
     AdminModule,
     StorageModule,
     VisitsModule,
+    QueueModule,
   ],
   controllers: [AppController],
   providers: [AppService, PusherService],

@@ -32,5 +32,7 @@ import { PusherModule } from 'src/pusher/pusher.module';
     DoctorAppointmentsService,
     AppointmentsService,
   ],
+  exports: [AdminAppointmentsService],
 })
 export class AppointmentsModule {}
+export { AdminAppointmentsService };

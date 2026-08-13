@@ -10,14 +10,15 @@ import { AdminAppointmentListItemDto } from './dto/admin-appointment-list-item.d
 import { UpdateAppointmentDto } from './dto/admin-update-appointment.dto';
 import { AppointmentsService } from './appointments.service';
 import { toListItem } from './utils/to-list-item';
+import { PusherService } from 'src/pusher/pusher.service';
 
 @Injectable()
 export class AdminAppointmentsService {
   constructor(
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
-
     private appointmentsService: AppointmentsService,
+    private pusherService: PusherService,
   ) {}
 
   async findAll(
@@ -76,6 +77,17 @@ export class AdminAppointmentsService {
 
     appointment.status = status;
     await this.appointmentRepository.save(appointment);
+
+    const normalizeAppointment = toListItem(appointment);
+    if (
+      [AppointmentStatus.WAITING, AppointmentStatus.START].includes(
+        normalizeAppointment.status,
+      )
+    ) {
+      await this.pusherService.triggerEvent('queue', 'appointment-updated', {
+        normalizeAppointment,
+      });
+    }
 
     return {
       message: 'Appointment status updated successfully',

@@ -11,6 +11,7 @@ import {
 import { AdminAppointmentsService } from './admin-appointments.service';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiOkResponse,
   ApiQuery,
   ApiTags,
@@ -76,6 +77,19 @@ export class AdminAppointmentsController {
 
   @Patch('update-status/:id')
   @ApiOkResponse({ type: MessageDto })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'string',
+          enum: Object.values(AppointmentStatus),
+          example: AppointmentStatus.WAITING, // مثال للتوضيح
+        },
+      },
+      required: ['status'],
+    },
+  })
   @Roles(UserRole.ADMIN, UserRole.SECRETARY)
   updateAppointmentStatus(
     @Param('id') id: string,

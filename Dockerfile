@@ -9,6 +9,9 @@ COPY package*.json ./
 # Install app dependencies
 RUN npm install
 
+# Install chromium for pdf generation
+RUN npx playwright install chromium --with-deps
+
 # Bundle app source
 COPY . .
 
