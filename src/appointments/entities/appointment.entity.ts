@@ -34,6 +34,7 @@ export enum AppointmentStatus {
 
 export enum PaymentStatus {
   PAID = 'paid',
+  DEPOSIT_PAID = 'deposit_paid', // <-- تمت الإضافة هنا
   REFUNDED = 'refunded',
   INSURANCE = 'insurance',
   UNPAID = 'unpaid',
@@ -99,6 +100,9 @@ export class Appointment {
 
   @OneToOne(() => Visit, (visit) => visit.appointment)
   visit: Visit;
+
+  @Column({ nullable: true, unique: true })
+  stripe_payment_intent_id: string;
 
   @CreateDateColumn()
   created_at: Date;
