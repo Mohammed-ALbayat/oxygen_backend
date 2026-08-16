@@ -6,9 +6,9 @@ import {
   Param,
   Body,
   UseGuards,
-  HttpCode,
   ParseIntPipe,
   Query,
+  Patch,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { newPasswordDto } from './dto/new-password.dto';
@@ -18,6 +18,7 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { UserRole } from './enums/user-roles.enum';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ApiEndpoint } from 'src/common/swagger/api-endpoint.decorator';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('Users Admin')
 @ApiBearerAuth()
@@ -66,5 +67,12 @@ export class UsersController {
     @Query() filters: { full_name?: string; phone?: string; role?: string },
   ) {
     return this.usersService.findAll(page, limit, filters);
+  }
+
+  @Patch(':id/update')
+  @Roles(UserRole.ADMIN)
+  @ApiEndpoint('Update user info', [UserRole.ADMIN])
+  update(@Param('id') id: number, @Body() dto: UpdateUserDto) {
+    return this.usersService.updateUser(id, dto);
   }
 }
