@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { UserStatus } from './enums/user-status.enum';
 import { UserRole } from './enums/user-roles.enum';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { toAdminMeResponse } from './utils/admin-response.util';
 
 @Injectable()
 export class UsersService {
@@ -114,5 +116,23 @@ export class UsersService {
       currentPage: page,
       lastPage: Math.ceil(total / limit),
     };
+  }
+
+  async updateUser(userId: number, dto: UpdateUserDto) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    if (dto.password) {
+      dto.password = await bcrypt.hash(dto.password, 10);
+    }
+
+    await this.userRepository.update(userId, dto);
+
+    return toAdminMeResponse(
+      await this.userRepository.findOne({ where: { id: userId } }),
+    );
   }
 }

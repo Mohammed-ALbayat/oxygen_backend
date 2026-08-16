@@ -63,7 +63,8 @@ export class AuthService {
     let userDetails:
       | DoctorMeResponseDto
       | SecretaryMeResponseDto
-      | AdminMeResponseDto;
+      | AdminMeResponseDto
+      | null;
 
     if (user.role === UserRole.DOCTOR) {
       const doctorProfile = await this.doctorRepository.findOne({
