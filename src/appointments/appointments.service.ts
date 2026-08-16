@@ -158,6 +158,7 @@ export class AppointmentsService {
         'specialty.title',
         'doctor.user_id',
         'user.full_name',
+        'user.image_path',
         'schedule.day_of_week',
         'schedule.start_time',
         'schedule.end_time',
@@ -175,6 +176,7 @@ export class AppointmentsService {
       doctors: (specialty.doctors || []).map((doctor) => ({
         id: doctor.user_id,
         name: doctor.user?.full_name,
+        image_path: doctor.user?.image_path,
         schedules: (doctor.schedules || []).map((s) => ({
           day_of_week: s.day_of_week,
           start_time: s.start_time,
