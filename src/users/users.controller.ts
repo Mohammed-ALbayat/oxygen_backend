@@ -11,6 +11,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { newPasswordDto } from './dto/new-password.dto';
 import { Roles } from 'src/auth/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -52,11 +53,8 @@ export class UsersController {
 
   @Put(':id/reset-password')
   @ApiEndpoint('Reset a user password by admin', [UserRole.ADMIN])
-  resetPassword(
-    @Param('id') id: number,
-    @Body('newPassword') newPassword: string,
-  ) {
-    return this.usersService.resetPassword(id, newPassword);
+  resetPassword(@Param('id') id: number, @Body() dto: newPasswordDto) {
+    return this.usersService.resetPassword(id, dto.newPassword);
   }
 
   @Get('search')
