@@ -15,6 +15,7 @@ import { AdminModule } from './admin/admin.module';
 import { StorageModule } from './storage/storage.module';
 import { VisitsModule } from './visits/visits.module';
 import { PusherService } from './pusher/pusher.service';
+import { StripeModule } from './stripe/stripe.module';
 import { QueueModule } from './queue/queue.module';
 
 @Module({
@@ -35,6 +36,7 @@ import { QueueModule } from './queue/queue.module';
     AdminModule,
     StorageModule,
     VisitsModule,
+    StripeModule,
     QueueModule,
   ],
   controllers: [AppController],

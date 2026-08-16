@@ -5,7 +5,7 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 import { setupSwagger } from './config/swagger.setup';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalPipes(
     new ValidationPipe({
