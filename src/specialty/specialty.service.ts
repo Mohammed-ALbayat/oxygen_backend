@@ -45,6 +45,9 @@ export class SpecialtyService {
       order: {
         id: 'DESC',
       },
+      relations: {
+        doctors: true,
+      },
     });
   }
 
@@ -59,6 +62,9 @@ export class SpecialtyService {
   async findOne(id: number) {
     const specialty = await this.specialtyRepository.findOne({
       where: { id },
+      relations: {
+        doctors: true,
+      },
     });
 
     if (!specialty) {
