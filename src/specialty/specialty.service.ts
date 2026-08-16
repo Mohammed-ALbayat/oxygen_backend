@@ -46,7 +46,26 @@ export class SpecialtyService {
         id: 'DESC',
       },
       relations: {
-        doctors: true,
+        doctors: {
+          user: true,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        published: true,
+        doctors: {
+          user_id: true,
+          specialization: true,
+          bio: true,
+          examination_price: true,
+          doctor_percentage: true,
+          average_rating: true,
+          user: {
+            id: true,
+            full_name: true,
+          },
+        },
       },
     });
   }
@@ -63,7 +82,26 @@ export class SpecialtyService {
     const specialty = await this.specialtyRepository.findOne({
       where: { id },
       relations: {
-        doctors: true,
+        doctors: {
+          user: true,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        published: true,
+        doctors: {
+          user_id: true,
+          specialization: true,
+          bio: true,
+          examination_price: true,
+          doctor_percentage: true,
+          average_rating: true,
+          user: {
+            id: true,
+            full_name: true,
+          },
+        },
       },
     });
 
