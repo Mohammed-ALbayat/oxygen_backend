@@ -4,7 +4,11 @@ import { UpdateSpecialtyDto } from './dto/update-specialty.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
 import { Specialty } from './entities/specialty.entity';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 
 @Injectable()
 export class SpecialtyService {
@@ -114,6 +118,13 @@ export class SpecialtyService {
 
   async remove(id: number) {
     const specialty = await this.findOne(id);
+
+    if (specialty.doctors?.length > 0) {
+      throw new BadRequestException(
+        'Cannot delete specialty that has associated doctors',
+      );
+    }
+
     await this.specialtyRepository.remove(specialty);
     return { deleted: true, id };
   }

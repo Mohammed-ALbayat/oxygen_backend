@@ -18,6 +18,9 @@ COPY . .
 # Creates a "dist" folder with the production build
 RUN npm run build
 
+# Multer writes here at runtime; gitignore excludes this path from the repo
+RUN mkdir -p storage/uploads
+
 # Expose the port on which the app will run
 EXPOSE 4000
 
