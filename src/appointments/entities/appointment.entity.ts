@@ -22,6 +22,8 @@ import {
 } from 'typeorm';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { Visit } from 'src/visits/entities/visit.entity';
+import { CancellationReason } from 'src/cancellation-reasons/entities/cancellation-reason.entity';
+import { AppointmentReview } from './appointment-review.entity';
 
 export enum AppointmentStatus {
   PENDING = 'pending',
@@ -31,6 +33,9 @@ export enum AppointmentStatus {
   COMPLETE = 'complete',
   CANCELLED = 'cancelled',
 }
+
+/** Fixed booking deposit in USD, charged through Stripe. */
+export const DEPOSIT_AMOUNT = 10;
 
 export enum PaymentStatus {
   PAID = 'paid',
@@ -85,10 +90,30 @@ export class Appointment {
   @IsEnum(PaymentStatus)
   payment_status: PaymentStatus;
 
+  @ManyToOne(() => CancellationReason, { nullable: true })
+  @JoinColumn({ name: 'cancellation_reason_id' })
+  cancellation_reason_ref: CancellationReason | null;
+
+  /**
+   * Label of the reason as it was at cancel time, so reports stay accurate even
+   * if the reason is later deactivated or renamed.
+   */
   @Column({ nullable: true })
   @IsString()
   @IsOptional()
   cancellation_reason?: string;
+
+  @Column('decimal', { precision: 10, scale: 2, nullable: true })
+  deposit_amount: number | null;
+
+  @Column('decimal', { precision: 10, scale: 2, nullable: true })
+  collected_amount: number | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  waiting_entered_at: Date | null;
+
+  @Column({ type: 'int', nullable: true })
+  waiting_duration_seconds: number | null;
 
   @Column({ default: false })
   @IsBoolean()
@@ -100,6 +125,9 @@ export class Appointment {
 
   @OneToOne(() => Visit, (visit) => visit.appointment)
   visit: Visit;
+
+  @OneToOne(() => AppointmentReview, (review) => review.appointment)
+  review: AppointmentReview;
 
   @Column({ nullable: true, unique: true })
   stripe_payment_intent_id: string;
