@@ -3,6 +3,7 @@ import { diskStorage } from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import { extname } from 'path';
 import { BadRequestException } from '@nestjs/common';
+import { ensureUploadsDir } from './upload-path';
 
 export const multerUploadConfig = {
   limits: {
@@ -24,7 +25,11 @@ export const multerUploadConfig = {
 
   storage: diskStorage({
     destination: (_req: Request, _file: Express.Multer.File, cb: any) => {
-      cb(null, './storage/uploads');
+      try {
+        cb(null, ensureUploadsDir());
+      } catch (err) {
+        cb(err as Error, '');
+      }
     },
     filename: (_req: Request, file: Express.Multer.File, cb: any) => {
       const uniqueFilename = `${uuidv4()}${extname(file.originalname)}`;

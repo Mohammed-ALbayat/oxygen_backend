@@ -8,6 +8,8 @@ services:
       - MYSQL_PASSWORD=password
     ports:
       - '4000:4000'
+    volumes:
+      - uploads_data:/usr/src/app/storage/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -40,3 +42,4 @@ services:
 
 volumes:
   db_data:
+  uploads_data:

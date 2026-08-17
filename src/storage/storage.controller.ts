@@ -6,6 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { UPLOADS_DIR } from './config/upload-path';
 
 @Controller('storage')
 export class StorageController {
@@ -13,7 +14,7 @@ export class StorageController {
   serveImage(@Param('filename') filename: string, @Res() res: Response) {
     this.validateFilename(filename);
 
-    return res.sendFile(filename, { root: './storage/uploads' });
+    return res.sendFile(filename, { root: UPLOADS_DIR });
   }
 
   private validateFilename(filename: string) {
