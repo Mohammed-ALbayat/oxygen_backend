@@ -15,6 +15,7 @@ import { calculateEndTime, getDayEnum } from './utils/doctor-schedule.utils';
 import { generateTimeSlots } from './utils/doctor-schedule.utils';
 import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.entity';
 import { Doctor } from 'src/doctors/entities/doctor.entity';
+import { CancellationReason } from 'src/cancellation-reasons/entities/cancellation-reason.entity';
 import {
   formatLocalDate,
   extractDateString,
@@ -228,10 +229,24 @@ export class AppointmentsService {
     };
   }
 
-  async cancelAppointment(appointment: Appointment, reason: string) {
+  /**
+   * Cancels an appointment against a managed reason. A free-text label is only
+   * accepted as an admin fallback and is stored without a reason reference.
+   */
+  async cancelAppointment(
+    appointment: Appointment,
+    reason: CancellationReason | string,
+  ) {
     this.checkAppointmentEligibility(appointment);
 
-    appointment.cancellation_reason = reason;
+    if (typeof reason === 'string') {
+      appointment.cancellation_reason_ref = null;
+      appointment.cancellation_reason = reason;
+    } else {
+      appointment.cancellation_reason_ref = reason;
+      appointment.cancellation_reason = reason.label;
+    }
+
     appointment.status = AppointmentStatus.CANCELLED;
 
     await this.appointmentRepository.save(appointment);

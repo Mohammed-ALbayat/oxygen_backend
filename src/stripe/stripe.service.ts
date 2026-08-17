@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import Stripe from 'stripe';
 import {
   Appointment,
+  DEPOSIT_AMOUNT,
   PaymentStatus,
 } from 'src/appointments/entities/appointment.entity';
 
@@ -21,15 +22,14 @@ export class StripeService {
   }
 
   async createPaymentIntent(appointmentId: number) {
-    const depositAmount = 10; // مبلغ العربون الثابت
-
     const paymentIntent = await this.stripe.paymentIntents.create({
-      amount: depositAmount * 100,
+      amount: DEPOSIT_AMOUNT * 100,
       currency: 'usd',
     });
 
     await this.appointmentRepository.update(appointmentId, {
       stripe_payment_intent_id: paymentIntent.id,
+      deposit_amount: DEPOSIT_AMOUNT,
     });
 
     return { clientSecret: paymentIntent.client_secret };
@@ -38,7 +38,12 @@ export class StripeService {
   async updateAppointmentStatus(intentId: string, status: PaymentStatus) {
     await this.appointmentRepository.update(
       { stripe_payment_intent_id: intentId },
-      { payment_status: status },
+      {
+        payment_status: status,
+        ...(status === PaymentStatus.DEPOSIT_PAID
+          ? { collected_amount: DEPOSIT_AMOUNT }
+          : {}),
+      },
     );
   }
 

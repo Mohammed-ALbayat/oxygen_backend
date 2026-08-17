@@ -2,13 +2,19 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Appointment, AppointmentStatus } from './entities/appointment.entity';
+import { AppointmentReview } from './entities/appointment-review.entity';
 import { DoctorAppointmentDto } from './dto/doctor-appointment-list-item.dto';
+import { DoctorReviewListItemDto } from './dto/appointment-review.dto';
+import { toReviewDto } from './utils/to-review-dto';
+import { extractDateString } from './utils/date.helper';
 
 @Injectable()
 export class DoctorAppointmentsService {
   constructor(
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
+    @InjectRepository(AppointmentReview)
+    private reviewRepository: Repository<AppointmentReview>,
   ) {}
 
   async getDoctorAppointments(
@@ -72,5 +78,32 @@ export class DoctorAppointmentsService {
         cancellation_reason: appointment.cancellation_reason ?? null,
       };
     });
+  }
+
+  async getDoctorReviews(doctorId: number, page: number, limit: number) {
+    const [reviews, total] = await this.reviewRepository
+      .createQueryBuilder('review')
+      .innerJoinAndSelect('review.appointment', 'appointment')
+      .innerJoinAndSelect('appointment.patient', 'patient')
+      .innerJoinAndSelect('patient.user', 'patientUser')
+      .where('appointment.doctor_id = :doctorId', { doctorId })
+      .orderBy('review.created_at', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    const data: DoctorReviewListItemDto[] = reviews.map((review) => ({
+      ...toReviewDto(review, review.appointment.id),
+      patient_id: review.appointment.patient.userId,
+      patient_name: review.appointment.patient.user?.full_name ?? null,
+      appointment_date: extractDateString(review.appointment.appointment_date),
+    }));
+
+    return {
+      data,
+      total,
+      currentPage: page,
+      lastPage: Math.ceil(total / limit),
+    };
   }
 }

@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import {
   Appointment,
   AppointmentStatus,
+  DEPOSIT_AMOUNT,
   PaymentStatus,
 } from './entities/appointment.entity';
 import { AdminAppointmentListItemDto } from './dto/admin-appointment-list-item.dto';
@@ -11,6 +12,8 @@ import { UpdateAppointmentDto } from './dto/admin-update-appointment.dto';
 import { AppointmentsService } from './appointments.service';
 import { toListItem } from './utils/to-list-item';
 import { PusherService } from 'src/pusher/pusher.service';
+import { AppointmentWaitingTimeService } from './appointment-waiting-time.service';
+import { CancellationReasonsService } from 'src/cancellation-reasons/cancellation-reasons.service';
 
 @Injectable()
 export class AdminAppointmentsService {
@@ -19,6 +22,8 @@ export class AdminAppointmentsService {
     private appointmentRepository: Repository<Appointment>,
     private appointmentsService: AppointmentsService,
     private pusherService: PusherService,
+    private appointmentWaitingTimeService: AppointmentWaitingTimeService,
+    private cancellationReasonsService: CancellationReasonsService,
   ) {}
 
   async findAll(
@@ -43,11 +48,18 @@ export class AdminAppointmentsService {
     return appointments.map((appointment) => toListItem(appointment));
   }
 
-  async cancel(appointment_id: number, reason: string) {
+  async cancel(appointment_id: number, reason: string, reasonId?: number) {
     const appointment =
       await this.appointmentsService.findAppointmentById(appointment_id);
 
-    return this.appointmentsService.cancelAppointment(appointment, reason);
+    const resolvedReason = reasonId
+      ? await this.cancellationReasonsService.findOne(reasonId)
+      : reason;
+
+    return this.appointmentsService.cancelAppointment(
+      appointment,
+      resolvedReason,
+    );
   }
 
   async adminUpdateAppointment(
@@ -74,6 +86,12 @@ export class AdminAppointmentsService {
     if (!Object.values(AppointmentStatus).includes(status)) {
       throw new BadRequestException('Invalid appointment status');
     }
+
+    this.appointmentWaitingTimeService.applyTransition(
+      appointment,
+      appointment.status,
+      status,
+    );
 
     appointment.status = status;
     await this.appointmentRepository.save(appointment);
@@ -107,11 +125,36 @@ export class AdminAppointmentsService {
     }
 
     appointment.payment_status = paymentStatus;
+    appointment.collected_amount = this.resolveCollectedAmount(
+      appointment,
+      paymentStatus,
+    );
     await this.appointmentRepository.save(appointment);
 
     return {
       message: 'Appointment payment status updated successfully',
       appointment,
     };
+  }
+
+  /**
+   * Records how much money the clinic actually holds for this appointment so the
+   * revenue report does not have to guess. Refunds keep the previous amount so
+   * the report can subtract it.
+   */
+  private resolveCollectedAmount(
+    appointment: Appointment,
+    paymentStatus: PaymentStatus,
+  ): number | null {
+    switch (paymentStatus) {
+      case PaymentStatus.PAID:
+        return Number(appointment.doctor?.examination_price ?? 0);
+      case PaymentStatus.DEPOSIT_PAID:
+        return Number(appointment.deposit_amount ?? DEPOSIT_AMOUNT);
+      case PaymentStatus.REFUNDED:
+        return appointment.collected_amount;
+      default:
+        return null;
+    }
   }
 }

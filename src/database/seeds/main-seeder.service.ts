@@ -6,6 +6,7 @@ import { DoctorsSeed } from './doctors.seed';
 import { PatientsSeed } from './patients.seed';
 import { SecretariesSeed } from './secretaries.seed';
 import { SpecialtiesSeed } from './specialties.seed';
+import { CancellationReasonsSeed } from './cancellation-reasons.seed';
 
 @Injectable()
 export class MainSeederService {
@@ -19,12 +20,14 @@ export class MainSeederService {
     private readonly patientsSeed: PatientsSeed,
     private readonly secretariesSeed: SecretariesSeed,
     private readonly specialtiesSeed: SpecialtiesSeed,
+    private readonly cancellationReasonsSeed: CancellationReasonsSeed,
   ) {}
 
   async runAllSeeds(): Promise<void> {
     this.logger.log('Starting execution of all seeds...');
 
     await this.specialtiesSeed.seed();
+    await this.cancellationReasonsSeed.seed();
     await this.adminSeed.seed();
     await this.patientsSeed.seed();
     await this.secretariesSeed.seed();

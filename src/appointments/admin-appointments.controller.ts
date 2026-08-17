@@ -51,15 +51,25 @@ export class AdminAppointmentsController {
     return this.adminAppointmentsService.findAll(appointment_status);
   }
 
+  @ApiQuery({ name: 'reasonId', required: false, type: Number })
+  @ApiQuery({ name: 'reason', required: false, type: String })
   @Delete('cancel/:id')
   @ApiOkResponse({ type: MessageDto })
-  @ApiEndpoint('Cancel an appointment by id', [UserRole.ADMIN])
+  @ApiEndpoint(
+    'Cancel an appointment by id. Prefer reasonId to reference a managed cancellation reason; reason is a free-text fallback.',
+    [UserRole.ADMIN],
+  )
   @Roles(UserRole.ADMIN, UserRole.SECRETARY)
   cancel(
     @Param('id') id: string,
     @Query('reason') reason: string = 'Cancelled by admin',
+    @Query('reasonId') reasonId?: string,
   ) {
-    return this.adminAppointmentsService.cancel(+id, reason);
+    return this.adminAppointmentsService.cancel(
+      +id,
+      reason,
+      reasonId ? +reasonId : undefined,
+    );
   }
 
   @Patch('update/:id')

@@ -18,6 +18,8 @@ import { Patient } from 'src/patients/entities/patient.entity';
 import { Secretary } from 'src/secretaries/entities/secretary.entity';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.entity';
+import { CancellationReason } from 'src/cancellation-reasons/entities/cancellation-reason.entity';
+import { CancellationReasonsSeed } from './cancellation-reasons.seed';
 import { AppModule } from 'src/app.module';
 
 @Module({
@@ -36,6 +38,7 @@ import { AppModule } from 'src/app.module';
       Secretary,
       Specialty,
       DoctorSchedule,
+      CancellationReason,
     ]),
   ],
   providers: [
@@ -47,6 +50,7 @@ import { AppModule } from 'src/app.module';
     PatientsSeed,
     SecretariesSeed,
     SpecialtiesSeed,
+    CancellationReasonsSeed,
   ],
 })
 export class SeedModule {}

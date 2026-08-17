@@ -17,6 +17,8 @@ import { VisitsModule } from './visits/visits.module';
 import { PusherService } from './pusher/pusher.service';
 import { StripeModule } from './stripe/stripe.module';
 import { QueueModule } from './queue/queue.module';
+import { CancellationReasonsModule } from './cancellation-reasons/cancellation-reasons.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -38,6 +40,8 @@ import { QueueModule } from './queue/queue.module';
     VisitsModule,
     StripeModule,
     QueueModule,
+    CancellationReasonsModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PusherService],

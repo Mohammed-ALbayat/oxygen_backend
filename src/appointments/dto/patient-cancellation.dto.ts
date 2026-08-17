@@ -1,8 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsInt, IsNotEmpty } from 'class-validator';
 
 export class CancelAppointmentDto {
-  @ApiProperty()
-  @IsString()
-  reason: string;
+  @ApiProperty({
+    description: 'Id of an active cancellation reason',
+    example: 1,
+  })
+  @IsInt()
+  @IsNotEmpty()
+  reasonId: number;
 }
