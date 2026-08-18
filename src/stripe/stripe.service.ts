@@ -76,4 +76,42 @@ export class StripeService {
       paymentStatus: appointment.payment_status,
     };
   }
+
+  async createCheckoutSession(
+    appointmentId: number,
+    successUrl: string,
+    cancelUrl: string,
+  ) {
+    const depositAmount = 10; // مبلغ العربون الثابت
+
+    const session = await this.stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: 'عربون حجز موعد - عيادة Oxygen',
+              description: `دفع عربون لتثبيت الموعد رقم ${appointmentId}`,
+            },
+            unit_amount: depositAmount * 100,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+    });
+
+    // لكي يتعرف الـ Webhook القديم على الفاتورة، نربط الـ Payment Intent بالميعاد
+    if (session.payment_intent) {
+      await this.appointmentRepository.update(appointmentId, {
+        stripe_payment_intent_id: session.payment_intent as string,
+      });
+    }
+
+    // نعيد الرابط الذي طلبه مطور الفرونت إند ليفتحه في الـ WebView
+    return { url: session.url };
+  }
 }
