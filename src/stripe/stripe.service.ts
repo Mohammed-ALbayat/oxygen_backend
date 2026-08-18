@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Stripe from 'stripe';
@@ -16,37 +20,67 @@ export class StripeService {
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
   ) {
+    // استخدمنا String() لتجنب خطأ undefined في TypeScript
     this.stripe = new Stripe(String(process.env.STRIPE_SECRET_KEY), {
       apiVersion: '2026-07-29.dahlia',
     });
   }
 
-  async createPaymentIntent(appointmentId: number) {
-    const paymentIntent = await this.stripe.paymentIntents.create({
-      amount: DEPOSIT_AMOUNT * 100,
-      currency: 'usd',
-    });
+  // 1. إنشاء جلسة الدفع (Checkout Session) للفرونت إند
+  async createCheckoutSession(
+    appointmentId: number,
+    successUrl: string,
+    cancelUrl: string,
+  ) {
+    try {
+      const session = await this.stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        metadata: {
+          appointmentId: String(appointmentId), // إخفاء رقم الموعد ليقرأه الويب هوك
+        },
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'عربون حجز موعد - عيادة Oxygen',
+                description: `دفع عربون لتثبيت الموعد رقم ${appointmentId}`,
+              },
+              unit_amount: DEPOSIT_AMOUNT * 100, // استخدام الثابت (يجب ضربه بـ 100 للسنتات)
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+      });
 
-    await this.appointmentRepository.update(appointmentId, {
-      stripe_payment_intent_id: paymentIntent.id,
-      deposit_amount: DEPOSIT_AMOUNT,
-    });
-
-    return { clientSecret: paymentIntent.client_secret };
+      // نعيد الرابط الذي طلبه مطور الفرونت إند ليفتحه في الـ WebView
+      return { url: session.url };
+    } catch (error) {
+      console.error('Stripe Session Error:', error);
+      throw new InternalServerErrorException('حدث خطأ أثناء تجهيز صفحة الدفع');
+    }
   }
 
-  async updateAppointmentStatus(intentId: string, status: PaymentStatus) {
+  // 2. تحديث حالة الموعد (يستدعيها الويب هوك بناءً على الـ ID)
+  async updateAppointmentStatusById(
+    appointmentId: number,
+    status: PaymentStatus,
+  ) {
     await this.appointmentRepository.update(
-      { stripe_payment_intent_id: intentId },
+      { id: appointmentId }, // البحث باستخدام ID الموعد مباشرة
       {
         payment_status: status,
         ...(status === PaymentStatus.DEPOSIT_PAID
-          ? { collected_amount: DEPOSIT_AMOUNT }
+          ? { collected_amount: DEPOSIT_AMOUNT, deposit_amount: DEPOSIT_AMOUNT }
           : {}),
       },
     );
   }
 
+  // 3. التحقق من التوقيع الأمني للويب هوك
   async verifyWebhookSignature(payload: Buffer, signature: string) {
     const webhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET);
 
@@ -61,7 +95,7 @@ export class StripeService {
     }
   }
 
-  // الدالة الجديدة التي سيستخدمها الفرونت إند لفحص حالة الدفع
+  // 4. الدالة التي يستخدمها الفرونت إند لفحص حالة الدفع بعد العودة للتطبيق
   async getPaymentStatus(appointmentId: number) {
     const appointment = await this.appointmentRepository.findOne({
       where: { id: appointmentId },
@@ -75,43 +109,5 @@ export class StripeService {
       appointmentId: appointment.id,
       paymentStatus: appointment.payment_status,
     };
-  }
-
-  async createCheckoutSession(
-    appointmentId: number,
-    successUrl: string,
-    cancelUrl: string,
-  ) {
-    const depositAmount = 10; // مبلغ العربون الثابت
-
-    const session = await this.stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'عربون حجز موعد - عيادة Oxygen',
-              description: `دفع عربون لتثبيت الموعد رقم ${appointmentId}`,
-            },
-            unit_amount: depositAmount * 100,
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-    });
-
-    // لكي يتعرف الـ Webhook القديم على الفاتورة، نربط الـ Payment Intent بالميعاد
-    if (session.payment_intent) {
-      await this.appointmentRepository.update(appointmentId, {
-        stripe_payment_intent_id: session.payment_intent as string,
-      });
-    }
-
-    // نعيد الرابط الذي طلبه مطور الفرونت إند ليفتحه في الـ WebView
-    return { url: session.url };
   }
 }

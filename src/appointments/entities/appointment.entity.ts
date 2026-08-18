@@ -35,7 +35,7 @@ export enum AppointmentStatus {
 }
 
 /** Fixed booking deposit in USD, charged through Stripe. */
-export const DEPOSIT_AMOUNT = 10;
+export const DEPOSIT_AMOUNT = 1;
 
 export enum PaymentStatus {
   PAID = 'paid',
