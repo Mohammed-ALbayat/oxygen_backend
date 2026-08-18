@@ -11,10 +11,14 @@ import {
 import type { Request } from 'express';
 import { StripeService } from './stripe.service';
 import { PaymentStatus } from 'src/appointments/entities/appointment.entity';
+import { AdminAppointmentsService } from 'src/appointments/admin-appointments.service';
 
 @Controller('stripe')
 export class StripeController {
-  constructor(private readonly stripeService: StripeService) {}
+  constructor(
+    private readonly stripeService: StripeService,
+    private readonly adminAppointmentsService: AdminAppointmentsService,
+  ) {}
 
   // 1. مسار إنشاء جلسة الدفع (الذي سيستخدمه الفرونت إند)
   @Post('create-checkout-session')
@@ -36,7 +40,6 @@ export class StripeController {
   // 2. مسار فحص حالة الدفع (يستدعيه الفرونت إند بعد عودة المريض للتطبيق)
   @Get('status/:appointmentId')
   async getPaymentStatus(@Param('appointmentId') appointmentId: string) {
-    // إشارة الـ + تقوم بتحويل النص القادم من الرابط إلى رقم
     return this.stripeService.getPaymentStatus(+appointmentId);
   }
 
@@ -51,9 +54,7 @@ export class StripeController {
     }
 
     if (!req.rawBody) {
-      throw new BadRequestException(
-        'Raw body is missing. Ensure rawBody is enabled in main.ts',
-      );
+      throw new BadRequestException('Raw body is missing.');
     }
 
     let event;

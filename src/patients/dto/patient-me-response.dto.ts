@@ -15,4 +15,5 @@ export class PatientMeResponseDto {
   permanent_medications: string | null;
   tall: number | null;
   weight: number | null;
+  image_path: string | null;
 }
