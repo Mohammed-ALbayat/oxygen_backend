@@ -12,6 +12,9 @@ export class Specialty {
   @Column('boolean')
   published: boolean;
 
+  @Column({ nullable: true })
+  image_path: string;
+
   @OneToMany(() => Doctor, (doctor) => doctor.specialty)
   doctors: Doctor[];
 }

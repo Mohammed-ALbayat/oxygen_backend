@@ -58,6 +58,7 @@ export class SpecialtyService {
         id: true,
         title: true,
         published: true,
+        image_path: true,
         doctors: {
           user_id: true,
           specialization: true,
@@ -77,7 +78,7 @@ export class SpecialtyService {
   async findAllPublished() {
     return this.specialtyRepository.find({
       where: { published: true },
-      select: ['id', 'title'],
+      select: ['id', 'title', 'image_path'],
       order: { id: 'DESC' },
     });
   }
@@ -94,6 +95,7 @@ export class SpecialtyService {
         id: true,
         title: true,
         published: true,
+        image_path: true,
         doctors: {
           user_id: true,
           specialization: true,
