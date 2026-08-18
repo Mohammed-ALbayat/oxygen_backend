@@ -67,4 +67,20 @@ export class StripeController {
 
     return { received: true };
   }
+
+  @Post('create-checkout-session')
+  async createCheckoutSession(
+    @Body()
+    body: {
+      appointmentId: number;
+      successUrl: string;
+      cancelUrl: string;
+    },
+  ) {
+    return this.stripeService.createCheckoutSession(
+      body.appointmentId,
+      body.successUrl,
+      body.cancelUrl,
+    );
+  }
 }
