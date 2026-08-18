@@ -20,6 +20,7 @@ export function toPatientMeResponse(
     permanent_medications: profile?.permanent_medications ?? null,
     tall: profile?.tall ?? null,
     weight: profile?.weight ?? null,
+    image_path: user.image_path ?? null,
   };
 }
 

@@ -86,6 +86,9 @@ export class StripeService {
 
     const session = await this.stripe.checkout.sessions.create({
       payment_method_types: ['card'],
+      metadata: { 
+        appointmentId: appointmentId.toString(),
+      },
       line_items: [
         {
           price_data: {
@@ -103,15 +106,7 @@ export class StripeService {
       success_url: successUrl,
       cancel_url: cancelUrl,
     });
-
-    // لكي يتعرف الـ Webhook القديم على الفاتورة، نربط الـ Payment Intent بالميعاد
-    if (session.payment_intent) {
-      await this.appointmentRepository.update(appointmentId, {
-        stripe_payment_intent_id: session.payment_intent as string,
-      });
-    }
-
-    // نعيد الرابط الذي طلبه مطور الفرونت إند ليفتحه في الـ WebView
+    
     return { url: session.url };
   }
 }

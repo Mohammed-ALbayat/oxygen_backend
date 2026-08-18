@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Param, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UserRole } from 'src/users/enums/user-roles.enum';
@@ -25,5 +25,11 @@ export class AdminVisitsController {
   @ApiEndpoint('Get a single visit by ID', [UserRole.ADMIN])
   findOne(@Param('id') id: string) {
     return this.visitsService.findOne(+id);
+  }
+
+  @Delete(':id')
+  @ApiEndpoint('Delete a visit', [UserRole.ADMIN])
+  remove(@Param('id') id: string) {
+    return this.visitsService.remove(+id);
   }
 }

@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateSpecialtyDto {
   @IsString()
@@ -8,4 +8,8 @@ export class CreateSpecialtyDto {
   @IsBoolean()
   @IsNotEmpty()
   published: boolean;
+
+  @IsString()
+  @IsOptional()
+  image_path?: string;
 }

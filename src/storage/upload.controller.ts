@@ -99,7 +99,7 @@ export class UploadController {
     if (!file) {
       throw new BadRequestException('File is required');
     }
-
+    
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
@@ -114,6 +114,35 @@ export class UploadController {
     return {
       message: `Profile picture for user ID ${userId} updated successfully`,
       filename: file.filename,
+    };
+  }
+  
+  @Roles(UserRole.ADMIN)
+  @Post('image')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    description: 'Admin: Upload an image',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('file', multerUploadConfig))
+  async uploadImage(
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+    const imagePath = file.filename;
+    return {
+      message: `Image uploaded successfully`,
+      imagePath: imagePath,
     };
   }
 }

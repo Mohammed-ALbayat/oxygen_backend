@@ -22,4 +22,12 @@ export class AdminVisitsService {
     }
     return visit;
   }
+
+  async remove(id: number) {
+    const visit = await this.findOne(id);
+
+    await this.visitRepository.remove(visit);
+
+    return { message: `تم حذف الزيارة رقم #${id} بنجاح` };
+  }
 }
