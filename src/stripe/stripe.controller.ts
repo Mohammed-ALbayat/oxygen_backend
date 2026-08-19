@@ -15,18 +15,35 @@ import { AdminAppointmentsService } from 'src/appointments/admin-appointments.se
 
 @Controller('stripe')
 export class StripeController {
-  constructor(private readonly stripeService: StripeService, private readonly adminAppointmentsService: AdminAppointmentsService) {}
+  constructor(
+    private readonly stripeService: StripeService,
+    private readonly adminAppointmentsService: AdminAppointmentsService,
+  ) {}
 
-  @Post('create-payment-intent')
-  async createPaymentIntent(@Body() body: { appointmentId: number }) {
-    return this.stripeService.createPaymentIntent(body.appointmentId);
+  // 1. مسار إنشاء جلسة الدفع (الذي سيستخدمه الفرونت إند)
+  @Post('create-checkout-session')
+  async createCheckoutSession(
+    @Body()
+    body: {
+      appointmentId: number;
+      successUrl: string;
+      cancelUrl: string;
+    },
+  ) {
+    return this.stripeService.createCheckoutSession(
+      body.appointmentId,
+      body.successUrl,
+      body.cancelUrl,
+    );
   }
 
+  // 2. مسار فحص حالة الدفع (يستدعيه الفرونت إند بعد عودة المريض للتطبيق)
   @Get('status/:appointmentId')
   async getPaymentStatus(@Param('appointmentId') appointmentId: string) {
     return this.stripeService.getPaymentStatus(+appointmentId);
   }
 
+  // 3. مسار الويب هوك (تستدعيه سيرفرات Stripe تلقائياً)
   @Post('webhook')
   async handleWebhook(
     @Headers('stripe-signature') signature: string,
@@ -42,41 +59,34 @@ export class StripeController {
 
     let event;
     try {
-      event = await this.stripeService.verifyWebhookSignature(req.rawBody, signature);
+      event = await this.stripeService.verifyWebhookSignature(
+        req.rawBody,
+        signature,
+      );
     } catch (err) {
       throw new BadRequestException((err as Error).message);
     }
 
+    // نستمع لحدث اكتمال جلسة الـ Checkout
     if (event.type === 'checkout.session.completed') {
-      const session = event.data.object;
-      
+      const session = event.data.object as any;
+
+      // نستخرج رقم الموعد الذي أخفيناه في الـ metadata
       const appointmentId = parseInt(session.metadata.appointmentId, 10);
 
+      // إذا وجدنا رقم الموعد، نقوم بتحديث حالته فوراً
       if (appointmentId) {
-        await this.adminAppointmentsService.updateAppointmentPaymentStatus(
-          appointmentId, 
-          PaymentStatus.DEPOSIT_PAID
+        await this.stripeService.updateAppointmentStatusById(
+          appointmentId,
+          PaymentStatus.DEPOSIT_PAID,
         );
-        console.log(`✅ Deposit paid for Appointment ID: ${appointmentId}`);
+        console.log(
+          `✅ Deposit paid successfully for Appointment ID: ${appointmentId}`,
+        );
       }
     }
 
+    // يجب دائماً إرجاع استجابة سريعة لـ Stripe لتأكيد الاستلام
     return { received: true };
-  }
-
-  @Post('create-checkout-session')
-  async createCheckoutSession(
-    @Body()
-    body: {
-      appointmentId: number;
-      successUrl: string;
-      cancelUrl: string;
-    },
-  ) {
-    return this.stripeService.createCheckoutSession(
-      body.appointmentId,
-      body.successUrl,
-      body.cancelUrl,
-    );
   }
 }
