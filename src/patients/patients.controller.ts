@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Body, Put, UseGuards, Query, ParseIntPipe } from '@nestjs/common';
 import { PatientsService } from './patients.service';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -37,5 +37,21 @@ export class PatientsController {
   ])
   updateMe(@CurrentUser() user: User, @Body() dto: UpdateMeDto) {
     return this.patientsService.updateMe(user, dto);
+  }
+
+  @Get('search')
+  @Roles(UserRole.ADMIN, UserRole.SECRETARY, UserRole.DOCTOR)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiEndpoint('Search and list patients with optional filters', [
+    UserRole.ADMIN,
+    UserRole.SECRETARY,
+    UserRole.DOCTOR,
+  ])
+  search(
+    @Query('page', ParseIntPipe) page: number,
+    @Query('limit', ParseIntPipe) limit: number,
+    @Query() filters: { full_name?: string; phone?: string },
+  ) {
+    return this.patientsService.search(page, limit, filters);
   }
 }
