@@ -94,7 +94,7 @@ export class AdminAppointmentsController {
         status: {
           type: 'string',
           enum: Object.values(AppointmentStatus),
-          example: AppointmentStatus.WAITING, // مثال للتوضيح
+          example: AppointmentStatus.WAITING,
         },
       },
       required: ['status'],

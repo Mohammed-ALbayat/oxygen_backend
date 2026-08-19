@@ -39,7 +39,7 @@ export const DEPOSIT_AMOUNT = 1;
 
 export enum PaymentStatus {
   PAID = 'paid',
-  DEPOSIT_PAID = 'deposit_paid', // <-- تمت الإضافة هنا
+  DEPOSIT_PAID = 'deposit_paid',
   REFUNDED = 'refunded',
   INSURANCE = 'insurance',
   UNPAID = 'unpaid',
