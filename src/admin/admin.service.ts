@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { AdminMeResponseDto } from './dto/admin-me-response.dto';
+import { toAdminMeResponse } from 'src/users/utils/admin-response.util';
 
 @Injectable()
 export class AdminService {
@@ -20,14 +21,6 @@ export class AdminService {
       throw new NotFoundException('المسؤول غير موجود');
     }
 
-    const response = new AdminMeResponseDto();
-    response.id = adminUser.id;
-    response.full_name = adminUser.full_name;
-    response.phone = adminUser.phone;
-    response.birth_date = adminUser.birth_date;
-    response.gender = adminUser.gender;
-    response.image_path = adminUser.image_path;
-
-    return response;
+    return toAdminMeResponse(adminUser)!;
   }
 }

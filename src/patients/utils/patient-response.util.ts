@@ -1,6 +1,7 @@
 import { User } from 'src/users/entities/user.entity';
 import { Patient } from '../entities/patient.entity';
 import { PatientMeResponseDto } from '../dto/patient-me-response.dto';
+import { toStorageUrl } from 'src/storage/utils/storage-url.util';
 
 export function toPatientMeResponse(
   user: User,
@@ -20,7 +21,7 @@ export function toPatientMeResponse(
     permanent_medications: profile?.permanent_medications ?? null,
     tall: profile?.tall ?? null,
     weight: profile?.weight ?? null,
-    image_path: user.image_path ?? null,
+    image_path: toStorageUrl(user.image_path),
   };
 }
 

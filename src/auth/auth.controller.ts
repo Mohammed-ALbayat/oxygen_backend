@@ -35,7 +35,7 @@ export class AuthController {
     type: MessageDto,
   })
   @ApiEndpoint(
-    'Send OTP code for patient login (expires in 5 minutes)',
+    'Send OTP code for user login (expires in 5 minutes)',
     'public',
   )
   sendOtp(@Body() phone: PhonenumberDto) {

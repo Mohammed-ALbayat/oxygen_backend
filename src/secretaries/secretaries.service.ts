@@ -10,6 +10,7 @@ import { Secretary } from './entities/secretary.entity';
 import { UpdateSecretaryDto } from './dto/update-secretary.dto';
 import { NotFoundException } from '@nestjs/common';
 import { SecretaryMeResponseDto } from './dto/secretary-me-response.dto';
+import { toSecretaryMeResponse } from './utils/secretary-response.util';
 
 @Injectable()
 export class SecretariesService {
@@ -67,20 +68,13 @@ export class SecretariesService {
       throw new NotFoundException('السكرتير غير موجود');
     }
 
-    const response = new SecretaryMeResponseDto();
-    response.id = secretary.user_id;
-    response.full_name = secretary.user.full_name;
-    response.phone = secretary.user.phone;
-    response.birth_date = secretary.user.birth_date;
-    response.gender = secretary.user.gender;
-    response.image_path = secretary.user.image_path;
-    response.shift_start = secretary.shift_start;
-    response.shift_end = secretary.shift_end;
-
-    return response;
+    return toSecretaryMeResponse(secretary.user, secretary);
   }
 
-  async updateSecretary(id: number, updateData: UpdateSecretaryDto) {
+  async updateSecretary(
+    id: number,
+    updateData: UpdateSecretaryDto,
+  ): Promise<SecretaryMeResponseDto> {
     const secretary = await this.secretaryRepository.findOne({
       where: { user_id: id },
       relations: ['user'],
@@ -100,6 +94,18 @@ export class SecretariesService {
       secretary.shift_end = updateData.shift_end;
     }
 
-    return await this.secretaryRepository.save(secretary);
+    await this.userRepository.save(secretary.user);
+    await this.secretaryRepository.save(secretary);
+
+    const updatedSecretary = await this.secretaryRepository.findOne({
+      where: { user_id: id },
+      relations: ['user'],
+    });
+
+    if (!updatedSecretary) {
+      throw new NotFoundException('السكرتير غير موجود');
+    }
+
+    return toSecretaryMeResponse(updatedSecretary.user, updatedSecretary);
   }
 }

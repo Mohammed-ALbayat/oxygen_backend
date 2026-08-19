@@ -70,6 +70,43 @@ export class PatientsService {
     return toPatientMeResponse(currentUser, profile);
   }
 
+  async search(
+    page: number,
+    limit: number,
+    filters: { full_name?: string; phone?: string },
+  ) {
+    const qb = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.patient', 'patient')
+      .where('user.role = :role', { role: UserRole.PATIENT });
+
+    if (filters?.full_name?.trim()) {
+      qb.andWhere('user.full_name LIKE :full_name', {
+        full_name: `%${filters.full_name.trim()}%`,
+      });
+    }
+
+    if (filters?.phone?.trim()) {
+      qb.andWhere('user.phone LIKE :phone', {
+        phone: `%${filters.phone.trim()}%`,
+      });
+    }
+
+    const skip = (page - 1) * limit;
+    qb.orderBy('user.id', 'DESC').skip(skip).take(limit);
+
+    const [users, total] = await qb.getManyAndCount();
+
+    return {
+      data: users.map((user) =>
+        toPatientMeResponse(user, user.patient ?? null),
+      ),
+      total,
+      currentPage: page,
+      lastPage: Math.ceil(total / limit),
+    };
+  }
+
   private applyPatientUpdates(profile: Patient, dto: UpdateMeDto) {
     if (dto.address !== undefined) {
       profile.address = dto.address;
