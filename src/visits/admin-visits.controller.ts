@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Param, ParseIntPipe, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UserRole } from 'src/users/enums/user-roles.enum';
@@ -16,9 +16,17 @@ export class AdminVisitsController {
   constructor(private readonly visitsService: AdminVisitsService) {}
 
   @Get()
-  @ApiEndpoint('List of all visits returned successfully', [UserRole.ADMIN])
-  findAll() {
-    return this.visitsService.findAll();
+  @ApiEndpoint('List all visits, optionally filtered by patient id', [
+    UserRole.ADMIN,
+    UserRole.SECRETARY,
+  ])
+  findAll(
+    @Query('page', ParseIntPipe) page: number,
+    @Query('limit', ParseIntPipe) limit: number,
+    @Query('patient_id', new ParseIntPipe({ optional: true }))
+    patientId?: number,
+  ) {
+    return this.visitsService.findAll(page, limit, patientId);
   }
   
   @Get(':id')

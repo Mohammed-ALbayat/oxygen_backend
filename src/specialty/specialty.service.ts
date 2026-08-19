@@ -9,6 +9,7 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
+import { toStorageUrl } from 'src/storage/utils/storage-url.util';
 
 @Injectable()
 export class SpecialtyService {
@@ -76,11 +77,17 @@ export class SpecialtyService {
   }
 
   async findAllPublished() {
-    return this.specialtyRepository.find({
+    const specialties = await this.specialtyRepository.find({
       where: { published: true },
       select: ['id', 'title', 'image_path'],
       order: { id: 'DESC' },
     });
+
+    return specialties.map(({ id, title, image_path }) => ({
+      id,
+      title,
+      image_path: toStorageUrl(image_path),
+    }));
   }
 
   async findOne(id: number) {

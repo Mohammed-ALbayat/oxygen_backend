@@ -94,7 +94,7 @@ export class AdminAppointmentsController {
         status: {
           type: 'string',
           enum: Object.values(AppointmentStatus),
-          example: AppointmentStatus.WAITING, // مثال للتوضيح
+          example: AppointmentStatus.WAITING,
         },
       },
       required: ['status'],
@@ -110,6 +110,19 @@ export class AdminAppointmentsController {
 
   @Patch('update-payment-status/:id')
   @ApiOkResponse({ type: MessageDto })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        paymentStatus: {
+          type: 'string',
+          enum: Object.values(PaymentStatus),
+          example: PaymentStatus.PAID,
+        },
+      },
+      required: ['paymentStatus'],
+    },
+  })
   @Roles(UserRole.ADMIN, UserRole.SECRETARY)
   updateAppointmentPaymentStatus(
     @Param('id') id: string,
