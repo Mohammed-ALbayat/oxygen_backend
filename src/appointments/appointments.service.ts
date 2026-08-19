@@ -22,6 +22,7 @@ import {
   generateTargetDates,
 } from './utils/date.helper';
 
+
 @Injectable()
 export class AppointmentsService {
   constructor(
