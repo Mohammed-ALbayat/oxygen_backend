@@ -10,9 +10,22 @@ export class AdminVisitsService {
     private visitRepository: Repository<Visit>,
   ) {}
 
-  async findAll() {
-    const visits = await this.visitRepository.find();
-    return visits;
+  async findAll(page: number, limit: number, patientId?: number) {
+    const [data, total] = await this.visitRepository.findAndCount({
+      where: patientId
+        ? { appointment: { patient: { userId: patientId } } }
+        : {},
+      order: { created_at: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return {
+      data,
+      total,
+      currentPage: page,
+      lastPage: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number) {
