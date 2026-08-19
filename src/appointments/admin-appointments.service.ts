@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -7,28 +7,63 @@ import {
   DEPOSIT_AMOUNT,
   PaymentStatus,
 } from './entities/appointment.entity';
-import { AdminAppointmentListItemDto } from './dto/admin-appointment-list-item.dto';
+import { AdminCreateAppointmentDto } from './dto/admin-create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/admin-update-appointment.dto';
 import { AppointmentsService } from './appointments.service';
 import { toListItem } from './utils/to-list-item';
 import { PusherService } from 'src/pusher/pusher.service';
 import { AppointmentWaitingTimeService } from './appointment-waiting-time.service';
 import { CancellationReasonsService } from 'src/cancellation-reasons/cancellation-reasons.service';
+import { Patient } from 'src/patients/entities/patient.entity';
 
 @Injectable()
 export class AdminAppointmentsService {
   constructor(
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
+    @InjectRepository(Patient)
+    private patientRepository: Repository<Patient>,
     private appointmentsService: AppointmentsService,
     private pusherService: PusherService,
     private appointmentWaitingTimeService: AppointmentWaitingTimeService,
     private cancellationReasonsService: CancellationReasonsService,
   ) {}
 
+  getDoctorSlots(doctorId: number, date?: string) {
+    return this.appointmentsService.getDoctorSlots(doctorId, date);
+  }
+
+  async createAppointment(dto: AdminCreateAppointmentDto) {
+    const patient = await this.patientRepository.findOne({
+      where: { userId: dto.patientId },
+    });
+
+    if (!patient) {
+      throw new NotFoundException('Patient not found');
+    }
+
+    const appointment = await this.appointmentsService.createAppointment(
+      dto.doctorId,
+      dto.patientId,
+      dto.date,
+      dto.start_time,
+    );
+
+    await this.pusherService.triggerEvent(
+      'secretary-channel',
+      'new-appointment',
+      appointment,
+    );
+
+    return appointment;
+  }
+
   async findAll(
+    page: number,
+    limit: number,
     status: AppointmentStatus | undefined,
-  ): Promise<AdminAppointmentListItemDto[]> {
+    patientId?: number,
+  ) {
     const query = this.appointmentRepository
       .createQueryBuilder('appointment')
       .leftJoinAndSelect('appointment.visit', 'visit')
@@ -38,14 +73,26 @@ export class AdminAppointmentsService {
       .leftJoinAndSelect('doctor.user', 'doctorUser')
       .leftJoinAndSelect('appointment.department', 'department')
       .orderBy('appointment.appointment_date', 'DESC')
-      .addOrderBy('appointment.start_time', 'DESC');
+      .addOrderBy('appointment.start_time', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
 
     if (status) {
       query.andWhere('appointment.status  = :status', { status });
     }
-    const appointments = await query.getMany();
 
-    return appointments.map((appointment) => toListItem(appointment));
+    if (patientId) {
+      query.andWhere('appointment.patient_id = :patientId', { patientId });
+    }
+
+    const [appointments, total] = await query.getManyAndCount();
+
+    return {
+      data: appointments.map((appointment) => toListItem(appointment)),
+      total,
+      currentPage: page,
+      lastPage: Math.ceil(total / limit),
+    };
   }
 
   async cancel(appointment_id: number, reason: string, reasonId?: number) {

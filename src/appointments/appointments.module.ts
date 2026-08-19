@@ -7,6 +7,7 @@ import { AppointmentReview } from './entities/appointment-review.entity';
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.entity';
 import { Doctor } from 'src/doctors/entities/doctor.entity';
+import { Patient } from 'src/patients/entities/patient.entity';
 import { AppointmentsController } from './appointments.controller';
 import { AppointmentsService } from './appointments.service';
 import { PatientAppointmentsController } from './patient-appointments.controller';
@@ -26,6 +27,7 @@ import { CancellationReasonsModule } from 'src/cancellation-reasons/cancellation
       Specialty,
       DoctorSchedule,
       Doctor,
+      Patient,
     ]),
     PusherModule,
     CancellationReasonsModule,
