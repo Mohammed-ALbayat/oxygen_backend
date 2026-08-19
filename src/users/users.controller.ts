@@ -59,7 +59,7 @@ export class UsersController {
   }
 
   @Get('search')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SECRETARY)
   @ApiEndpoint('Search and list users with optional filters', [UserRole.ADMIN])
   search(
     @Query('page', ParseIntPipe) page: number,
