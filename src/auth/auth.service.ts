@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -48,13 +49,13 @@ export class AuthService {
     });
 
     if (!user || !user.password) {
-      throw new UnauthorizedException('بيانات الدخول غير صحيحة');
+      throw new UnauthorizedException('Invalid login credentials');
     }
 
     const isMatch = await bcrypt.compare(dto.password, user.password);
 
     if (!isMatch) {
-      throw new UnauthorizedException('بيانات الدخول غير صحيحة');
+      throw new UnauthorizedException('Invalid login credentials');
     }
 
     await this.userRepository.save(user);
@@ -79,7 +80,7 @@ export class AuthService {
     } else if (user.role === UserRole.ADMIN) {
       userDetails = toAdminMeResponse(user);
     } else {
-      throw new UnauthorizedException('دور المستخدم غير صالح أو غير مدعوم');
+      throw new UnauthorizedException('Invalid user role or unsupported role');
     }
 
     return {
@@ -94,7 +95,7 @@ export class AuthService {
     });
 
     if (existing) {
-      throw new ConflictException('رقم الهاتف موجود مسبقاً');
+      throw new ConflictException('Phone number already exists');
     }
 
     const user = this.userRepository.create({
@@ -114,17 +115,18 @@ export class AuthService {
 
   async sendOtp(phone: string) {
     const user = await this.userRepository.findOne({
-      where: {
-        phone,
-        role: UserRole.PATIENT,
-      },
+      where: { phone },
     });
 
     if (!user) {
-      throw new NotFoundException('المريض غير موجود');
+      throw new NotFoundException('User not found or the user does not have a phone number');
     }
 
-    return this.otpService.create(phone, OtpPurpose.PATIENT_LOGIN);
+    if (!user.phone?.trim()) {
+      throw new BadRequestException('User does not have a phone number');
+    }
+
+    return this.otpService.create(user.phone, OtpPurpose.PATIENT_LOGIN);
   }
 
   async verifyOtp(phone: string, otp: string) {
@@ -139,7 +141,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new NotFoundException('المريض غير موجود');
+      throw new NotFoundException('Patient not found');
     }
 
     const access_token = generateToken(user, UserRole.PATIENT, this.jwtService);
