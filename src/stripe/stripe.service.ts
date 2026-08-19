@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   InternalServerErrorException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -68,15 +69,23 @@ export class StripeService {
   async updateAppointmentStatusById(
     appointmentId: number,
     status: PaymentStatus,
+    paymentIntentId?: string, // 👈 تمت الإضافة: معامل اختياري لاستقبال رقم العملية من الويب هوك
   ) {
+    const updateData: any = {
+      payment_status: status,
+      ...(status === PaymentStatus.DEPOSIT_PAID
+        ? { collected_amount: DEPOSIT_AMOUNT, deposit_amount: DEPOSIT_AMOUNT }
+        : {}),
+    };
+
+    // 👈 تمت الإضافة: إذا أرسلنا رقم العملية، يتم حفظه في الداتا بيز
+    if (paymentIntentId) {
+      updateData.stripe_payment_intent_id = paymentIntentId;
+    }
+
     await this.appointmentRepository.update(
       { id: appointmentId }, // البحث باستخدام ID الموعد مباشرة
-      {
-        payment_status: status,
-        ...(status === PaymentStatus.DEPOSIT_PAID
-          ? { collected_amount: DEPOSIT_AMOUNT, deposit_amount: DEPOSIT_AMOUNT }
-          : {}),
-      },
+      updateData,
     );
   }
 
@@ -109,5 +118,47 @@ export class StripeService {
       appointmentId: appointment.id,
       paymentStatus: appointment.payment_status,
     };
+  }
+
+  // 5. 👈 تمت الإضافة: دالة إرجاع العربون (Refund)
+  async refundAppointmentDeposit(appointmentId: number) {
+    // نبحث عن الموعد في الداتا بيز
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id: appointmentId },
+    });
+
+    if (!appointment) {
+      throw new NotFoundException('الموعد غير موجود');
+    }
+
+    // نتأكد أن الموعد مدفوع وله Payment Intent محفوظ
+    if (!appointment.stripe_payment_intent_id) {
+      throw new BadRequestException(
+        'لا توجد عملية دفع مرتبطة بهذا الموعد لإرجاعها',
+      );
+    }
+
+    try {
+      // نطلب من سترايب إرجاع المبلغ باستخدام الـ Intent المحفوظ
+      await this.stripe.refunds.create({
+        payment_intent: appointment.stripe_payment_intent_id,
+      });
+
+      // نحدث حالة الموعد في الداتا بيز (تأكد من وجود حالة REFUNDED في PaymentStatus)
+      await this.appointmentRepository.update(
+        { id: appointmentId },
+        {
+          payment_status: PaymentStatus.REFUNDED,
+          collected_amount: 0, // تصفير المبلغ لأنه رجع
+        },
+      );
+
+      return { success: true, message: 'تم إلغاء الموعد وإرجاع العربون بنجاح' };
+    } catch (error) {
+      console.error('Refund Error:', error);
+      throw new InternalServerErrorException(
+        'حدث خطأ أثناء محاولة إرجاع المبلغ من بوابة الدفع',
+      );
+    }
   }
 }

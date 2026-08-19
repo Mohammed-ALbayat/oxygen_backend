@@ -74,19 +74,29 @@ export class StripeController {
       // نستخرج رقم الموعد الذي أخفيناه في الـ metadata
       const appointmentId = parseInt(session.metadata.appointmentId, 10);
 
-      // إذا وجدنا رقم الموعد، نقوم بتحديث حالته فوراً
+      // 👈 تمت الإضافة: نستخرج رقم العملية لكي نحفظه
+      const paymentIntentId = session.payment_intent;
+
+      // إذا وجدنا رقم الموعد، نقوم بتحديث حالته فوراً وحفظ رقم العملية
       if (appointmentId) {
         await this.stripeService.updateAppointmentStatusById(
           appointmentId,
           PaymentStatus.DEPOSIT_PAID,
+          paymentIntentId, // 👈 تمرير رقم العملية للسيرفيس
         );
         console.log(
-          `✅ Deposit paid successfully for Appointment ID: ${appointmentId}`,
+          `✅ Deposit paid successfully for Appointment ID: ${appointmentId} with Intent: ${paymentIntentId}`,
         );
       }
     }
 
     // يجب دائماً إرجاع استجابة سريعة لـ Stripe لتأكيد الاستلام
     return { received: true };
+  }
+
+  // 4. 👈 تمت الإضافة: مسار إرجاع العربون (Refund)
+  @Post('refund/:appointmentId')
+  async refundAppointment(@Param('appointmentId') appointmentId: string) {
+    return this.stripeService.refundAppointmentDeposit(+appointmentId);
   }
 }
