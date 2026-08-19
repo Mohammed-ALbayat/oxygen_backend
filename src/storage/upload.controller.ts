@@ -20,6 +20,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { multerUploadConfig } from './config/multer.config';
+import { toStorageUrl } from './utils/storage-url.util';
 import { User } from '../users/entities/user.entity';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -55,10 +56,6 @@ export class UploadController {
     @CurrentUser() currentUser: User,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    if (!file) {
-      throw new BadRequestException('File is required');
-    }
-
     const user = await this.userRepository.findOne({
       where: { id: currentUser.id },
     });
@@ -67,12 +64,14 @@ export class UploadController {
       throw new NotFoundException('User not found');
     }
 
-    user.image_path = file.filename;
+    user.image_path = file?.filename ?? null;
     await this.userRepository.save(user);
 
     return {
-      message: 'Your profile picture has been updated successfully',
-      filename: file.filename,
+      message: file
+        ? 'Your profile picture has been updated successfully'
+        : 'Your profile picture has been removed successfully',
+      image_path: toStorageUrl(user.image_path),
     };
   }
 
