@@ -112,7 +112,7 @@ export class UploadController {
 
     return {
       message: `Profile picture for user ID ${userId} updated successfully`,
-      filename: file.filename,
+      image_path: toStorageUrl(user.image_path),
     };
   }
   

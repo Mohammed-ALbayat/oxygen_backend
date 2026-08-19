@@ -1,6 +1,7 @@
 import { User } from 'src/users/entities/user.entity';
 import { Doctor } from '../entities/doctor.entity';
 import { DoctorMeResponseDto } from '../dto/doctor-me-response.dto';
+import { toStorageUrl } from 'src/storage/utils/storage-url.util';
 
 export function toDoctorMeResponse(
   user: User,
@@ -12,7 +13,7 @@ export function toDoctorMeResponse(
     phone: user.phone,
     birth_date: user.birth_date ?? null,
     gender: user.gender ?? null,
-    image_path: user.gender ?? null,
+    image_path: toStorageUrl(user.image_path),
     specialty: profile?.specialty ?? null,
     schedules: profile?.schedules ?? null,
     specialization: profile?.specialization ?? null,
