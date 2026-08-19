@@ -15,7 +15,9 @@ export class QueueController {
   })
   @UseGuards(ApiKeyGuard)
   async getActiveQueue() {
-    const activeAppointments = await this.appointmentService.findAll(
+    const { data: activeAppointments } = await this.appointmentService.findAll(
+      1,
+      1000,
       AppointmentStatus.WAITING,
     );
 
