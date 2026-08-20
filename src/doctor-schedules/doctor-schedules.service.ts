@@ -14,6 +14,33 @@ export class DoctorSchedulesService {
     private doctorRepository: Repository<Doctor>,
   ) {}
 
+  async findAll(keyword?: string) {
+    const qb = this.doctorRepository
+      .createQueryBuilder('doctor')
+      .innerJoinAndSelect('doctor.user', 'user')
+      .leftJoinAndSelect('doctor.specialty', 'specialty')
+      .orderBy('user.full_name', 'ASC');
+
+    if (keyword?.trim()) {
+      qb.andWhere('user.full_name LIKE :keyword', {
+        keyword: `%${keyword.trim()}%`,
+      });
+    }
+
+    const doctors = await qb.getMany();
+
+    return doctors.map((doctor) => ({
+      id: doctor.user_id,
+      full_name: doctor.user.full_name,
+      specialty: doctor.specialty
+        ? { id: doctor.specialty.id, title: doctor.specialty.title }
+        : null,
+      specialization: doctor.specialization,
+      examination_price: doctor.examination_price,
+      average_rating: doctor.average_rating,
+    }));
+  }
+
   async findByDoctorId(doctorId: number) {
     const doctor = await this.doctorRepository.findOne({
       where: { user_id: doctorId },
