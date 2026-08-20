@@ -1,8 +1,9 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Query } from '@nestjs/common';
 import { DoctorAppointmentsService } from './doctor-appointments.service';
 import { ApiBearerAuth } from 'node_modules/@nestjs/swagger/dist/decorators/api-bearer.decorator';
 import { AppointmentStatus } from './entities/appointment.entity';
 import { ApiTags } from '@nestjs/swagger';
+import { AdminAppointmentsService } from './admin-appointments.service';
 
 @ApiBearerAuth()
 @ApiTags('Appointments Doctor')
@@ -10,6 +11,7 @@ import { ApiTags } from '@nestjs/swagger';
 export class DoctorAppointmentsController {
   constructor(
     private readonly doctorAppointmentsService: DoctorAppointmentsService,
+    private readonly adminAppointmentsService: AdminAppointmentsService,
   ) {}
 
   @Get()
@@ -21,5 +23,12 @@ export class DoctorAppointmentsController {
       +doctorId,
       status,
     );
+  }
+
+  @Patch('update-status/:id')
+  updateAppointmentStatus(
+    @Param('id') id: string,
+  ) {
+    return this.adminAppointmentsService.updateAppointmentStatus(+id, AppointmentStatus.COMPLETE);
   }
 }

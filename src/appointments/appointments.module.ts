@@ -46,7 +46,7 @@ import { CancellationReasonsModule } from 'src/cancellation-reasons/cancellation
     DoctorAppointmentsService,
     AppointmentWaitingTimeService,
   ],
-  exports: [AdminAppointmentsService],
+  exports: [AdminAppointmentsService, AppointmentWaitingTimeService],
 })
 export class AppointmentsModule {}
 export { AdminAppointmentsService };

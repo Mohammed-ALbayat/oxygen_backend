@@ -17,6 +17,7 @@ import { Patient } from 'src/patients/entities/patient.entity';
 import { VisitsService } from './visits.service';
 import { I18nService } from 'nestjs-i18n';
 import { toPatientUserDetails } from 'src/patients/utils/patient-response.util';
+import { AppointmentWaitingTimeService } from 'src/appointments/appointment-waiting-time.service';
 
 @Injectable()
 export class DoctorVisitsService {
@@ -35,6 +36,7 @@ export class DoctorVisitsService {
     @InjectRepository(Patient)
     private patientRepository: Repository<Patient>,
     private readonly i18n: I18nService,
+    private readonly appointmentWaitingTimeService: AppointmentWaitingTimeService,
   ) {}
 
   async create(createVisitDto: CreateVisitDto) {
@@ -46,8 +48,30 @@ export class DoctorVisitsService {
         this.i18n.t('visits.VISIT_ALREADY_EXISTS'),
       );
     }
+
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id: createVisitDto.appointment_id },
+    });
+    if (!appointment) {
+      throw new NotFoundException(
+        this.i18n.t('appointments.APPOINTMENT_NOT_FOUND'),
+      );
+    }
+
     const visit = this.visitRepository.create(createVisitDto);
-    return this.visitRepository.save(visit);
+    const savedVisit = await this.visitRepository.save(visit);
+
+    if (appointment.status !== AppointmentStatus.COMPLETE) {
+      this.appointmentWaitingTimeService.applyTransition(
+        appointment,
+        appointment.status,
+        AppointmentStatus.COMPLETE,
+      );
+      appointment.status = AppointmentStatus.COMPLETE;
+      await this.appointmentRepository.save(appointment);
+    }
+
+    return savedVisit;
   }
 
   async findAll(doctor_id: number) {
