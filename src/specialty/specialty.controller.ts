@@ -39,11 +39,13 @@ export class SpecialtyController {
     return this.specialtyService.updateSpecialty(+id, dto);
   }
 
+  @Roles(UserRole.ADMIN, UserRole.SECRETARY)
   @Get()
   findAll() {
     return this.specialtyService.findAll();
   }
-
+  
+  @Roles(UserRole.ADMIN, UserRole.SECRETARY)
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.specialtyService.findOne(id);
