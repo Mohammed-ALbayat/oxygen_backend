@@ -12,6 +12,7 @@ import {
   DEPOSIT_AMOUNT,
   PaymentStatus,
 } from 'src/appointments/entities/appointment.entity';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class StripeService {
@@ -20,6 +21,7 @@ export class StripeService {
   constructor(
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
+    private readonly i18n: I18nService,
   ) {
     // استخدمنا String() لتجنب خطأ undefined في TypeScript
     this.stripe = new Stripe(String(process.env.STRIPE_SECRET_KEY), {
@@ -61,7 +63,9 @@ export class StripeService {
       return { url: session.url };
     } catch (error) {
       console.error('Stripe Session Error:', error);
-      throw new InternalServerErrorException('حدث خطأ أثناء تجهيز صفحة الدفع');
+      throw new InternalServerErrorException(
+        this.i18n.t('stripe.CHECKOUT_ERROR'),
+      );
     }
   }
 
@@ -111,7 +115,9 @@ export class StripeService {
     });
 
     if (!appointment) {
-      throw new NotFoundException('الموعد غير موجود');
+      throw new NotFoundException(
+        this.i18n.t('stripe.APPOINTMENT_NOT_FOUND'),
+      );
     }
 
     return {
@@ -128,13 +134,15 @@ export class StripeService {
     });
 
     if (!appointment) {
-      throw new NotFoundException('الموعد غير موجود');
+      throw new NotFoundException(
+        this.i18n.t('stripe.APPOINTMENT_NOT_FOUND'),
+      );
     }
 
     // نتأكد أن الموعد مدفوع وله Payment Intent محفوظ
     if (!appointment.stripe_payment_intent_id) {
       throw new BadRequestException(
-        'لا توجد عملية دفع مرتبطة بهذا الموعد لإرجاعها',
+        this.i18n.t('stripe.NO_PAYMENT_TO_REFUND'),
       );
     }
 
@@ -153,11 +161,14 @@ export class StripeService {
         },
       );
 
-      return { success: true, message: 'تم إلغاء الموعد وإرجاع العربون بنجاح' };
+      return {
+        success: true,
+        message: this.i18n.t('stripe.REFUND_SUCCESS'),
+      };
     } catch (error) {
       console.error('Refund Error:', error);
       throw new InternalServerErrorException(
-        'حدث خطأ أثناء محاولة إرجاع المبلغ من بوابة الدفع',
+        this.i18n.t('stripe.REFUND_ERROR'),
       );
     }
   }

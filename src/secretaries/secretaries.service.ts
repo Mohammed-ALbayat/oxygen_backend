@@ -11,6 +11,7 @@ import { UpdateSecretaryDto } from './dto/update-secretary.dto';
 import { NotFoundException } from '@nestjs/common';
 import { SecretaryMeResponseDto } from './dto/secretary-me-response.dto';
 import { toSecretaryMeResponse } from './utils/secretary-response.util';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class SecretariesService {
@@ -20,6 +21,7 @@ export class SecretariesService {
 
     @InjectRepository(Secretary)
     private secretaryRepository: Repository<Secretary>,
+    private readonly i18n: I18nService,
   ) {}
 
   async createSecretary(dto: CreateSecretaryDto) {
@@ -28,7 +30,9 @@ export class SecretariesService {
     });
 
     if (existing) {
-      throw new ConflictException('رقم الهاتف موجود مسبقاً');
+      throw new ConflictException(
+        this.i18n.t('secretaries.PHONE_ALREADY_EXISTS'),
+      );
     }
 
     let hashedPassword: string = '';
@@ -53,7 +57,7 @@ export class SecretariesService {
 
     await this.secretaryRepository.save(secretary);
     return {
-      message: 'Secretary created successfully',
+      message: this.i18n.t('secretaries.CREATED_SUCCESS'),
       user_id: savedUser.id,
     };
   }
@@ -65,7 +69,9 @@ export class SecretariesService {
     });
 
     if (!secretary) {
-      throw new NotFoundException('السكرتير غير موجود');
+      throw new NotFoundException(
+        this.i18n.t('secretaries.SECRETARY_NOT_FOUND'),
+      );
     }
 
     return toSecretaryMeResponse(secretary.user, secretary);
@@ -81,7 +87,9 @@ export class SecretariesService {
     });
 
     if (!secretary) {
-      throw new NotFoundException('السكرتير غير موجود');
+      throw new NotFoundException(
+        this.i18n.t('secretaries.SECRETARY_NOT_FOUND'),
+      );
     }
     if (updateData.full_name !== undefined) {
       secretary.user.full_name = updateData.full_name;
@@ -103,7 +111,9 @@ export class SecretariesService {
     });
 
     if (!updatedSecretary) {
-      throw new NotFoundException('السكرتير غير موجود');
+      throw new NotFoundException(
+        this.i18n.t('secretaries.SECRETARY_NOT_FOUND'),
+      );
     }
 
     return toSecretaryMeResponse(updatedSecretary.user, updatedSecretary);

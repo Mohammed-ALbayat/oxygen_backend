@@ -2,12 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Visit } from './entities/visit.entity';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class PatientVisitsService {
   constructor(
     @InjectRepository(Visit)
     private visitRepository: Repository<Visit>,
+    private readonly i18n: I18nService,
   ) {}
 
   async findAll(user_id: number) {
@@ -22,7 +24,9 @@ export class PatientVisitsService {
       where: { appointment: { patient: { userId: user_id } }, id: id },
     });
     if (!visit) {
-      throw new NotFoundException('هذه الزيارة غير موجودة');
+      throw new NotFoundException(
+        this.i18n.t('visits.VISIT_NOT_FOUND'),
+      );
     }
     return visit;
   }

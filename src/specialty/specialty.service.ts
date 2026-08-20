@@ -10,12 +10,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { toStorageUrl } from 'src/storage/utils/storage-url.util';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class SpecialtyService {
   constructor(
     @InjectRepository(Specialty)
     private specialtyRepository: Repository<Specialty>,
+    private readonly i18n: I18nService,
   ) {}
 
   async createSpecialty(dto: CreateSpecialtyDto) {
@@ -23,7 +25,9 @@ export class SpecialtyService {
       where: { title: dto.title },
     });
     if (existing) {
-      throw new ConflictException('Specialty with this title already exists');
+      throw new ConflictException(
+        this.i18n.t('specialty.TITLE_ALREADY_EXISTS'),
+      );
     }
     const specialty = this.specialtyRepository.create(dto);
     return this.specialtyRepository.save(specialty);
@@ -37,7 +41,9 @@ export class SpecialtyService {
         where: { title: dto.title, id: Not(id) },
       });
       if (existing) {
-        throw new ConflictException('Specialty with this title already exists');
+        throw new ConflictException(
+        this.i18n.t('specialty.TITLE_ALREADY_EXISTS'),
+      );
       }
     }
 
@@ -119,7 +125,9 @@ export class SpecialtyService {
     });
 
     if (!specialty) {
-      throw new NotFoundException(`Specialty with ID #${id} not found`);
+      throw new NotFoundException(
+        this.i18n.t('specialty.NOT_FOUND_WITH_ID', { args: { id } }),
+      );
     }
 
     return specialty;
@@ -130,7 +138,7 @@ export class SpecialtyService {
 
     if (specialty.doctors?.length > 0) {
       throw new BadRequestException(
-        'Cannot delete specialty that has associated doctors',
+        this.i18n.t('specialty.CANNOT_DELETE_WITH_DOCTORS'),
       );
     }
 

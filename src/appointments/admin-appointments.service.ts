@@ -15,6 +15,7 @@ import { PusherService } from 'src/pusher/pusher.service';
 import { AppointmentWaitingTimeService } from './appointment-waiting-time.service';
 import { CancellationReasonsService } from 'src/cancellation-reasons/cancellation-reasons.service';
 import { Patient } from 'src/patients/entities/patient.entity';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class AdminAppointmentsService {
@@ -27,6 +28,7 @@ export class AdminAppointmentsService {
     private pusherService: PusherService,
     private appointmentWaitingTimeService: AppointmentWaitingTimeService,
     private cancellationReasonsService: CancellationReasonsService,
+    private readonly i18n: I18nService,
   ) {}
 
   getDoctorSlots(doctorId: number, date?: string) {
@@ -39,7 +41,9 @@ export class AdminAppointmentsService {
     });
 
     if (!patient) {
-      throw new NotFoundException('Patient not found');
+      throw new NotFoundException(
+        this.i18n.t('appointments.PATIENT_NOT_FOUND'),
+      );
     }
 
     const appointment = await this.appointmentsService.createAppointment(
@@ -133,7 +137,9 @@ export class AdminAppointmentsService {
       await this.appointmentsService.findAppointmentById(appointment_id);
 
     if (!Object.values(AppointmentStatus).includes(status)) {
-      throw new BadRequestException('Invalid appointment status');
+      throw new BadRequestException(
+        this.i18n.t('appointments.INVALID_STATUS'),
+      );
     }
 
     this.appointmentWaitingTimeService.applyTransition(
@@ -157,7 +163,7 @@ export class AdminAppointmentsService {
     }
 
     return {
-      message: 'Appointment status updated successfully',
+      message: this.i18n.t('appointments.STATUS_UPDATED_SUCCESS'),
       appointment,
     };
   }
@@ -170,7 +176,9 @@ export class AdminAppointmentsService {
       await this.appointmentsService.findAppointmentById(appointment_id);
 
     if (!Object.values(PaymentStatus).includes(paymentStatus)) {
-      throw new BadRequestException('Invalid payment status');
+      throw new BadRequestException(
+        this.i18n.t('appointments.INVALID_PAYMENT_STATUS'),
+      );
     }
 
     appointment.payment_status = paymentStatus;
@@ -178,10 +186,18 @@ export class AdminAppointmentsService {
       appointment,
       paymentStatus,
     );
+
+    if (
+      [PaymentStatus.PAID, PaymentStatus.DEPOSIT_PAID].includes(paymentStatus) &&
+      appointment.status === AppointmentStatus.PENDING
+    ) {
+      appointment.status = AppointmentStatus.ACTIVE;
+    }
+
     await this.appointmentRepository.save(appointment);
 
     return {
-      message: 'Appointment payment status updated successfully',
+      message: this.i18n.t('appointments.PAYMENT_STATUS_UPDATED_SUCCESS'),
       appointment,
     };
   }

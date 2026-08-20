@@ -1,0 +1,9 @@
+{
+  "CHECKOUT_ERROR": "حدث خطأ أثناء تجهيز صفحة الدفع",
+  "APPOINTMENT_NOT_FOUND": "الموعد غير موجود",
+  "NO_PAYMENT_TO_REFUND": "لا توجد عملية دفع مرتبطة بهذا الموعد لإرجاعها",
+  "REFUND_ERROR": "حدث خطأ أثناء محاولة إرجاع المبلغ من بوابة الدفع",
+  "REFUND_SUCCESS": "تم إلغاء الموعد وإرجاع العربون بنجاح",
+  "MISSING_SIGNATURE": "Missing stripe-signature header",
+  "RAW_BODY_MISSING": "Raw body is missing."
+}

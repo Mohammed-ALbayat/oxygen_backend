@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { I18nService } from 'nestjs-i18n';
 import {
   OtpPurpose,
   OtpVerification,
@@ -13,6 +14,7 @@ export class OtpService {
   constructor(
     @InjectRepository(OtpVerification)
     private readonly otpRepository: Repository<OtpVerification>,
+    private readonly i18n: I18nService,
   ) {}
 
   async create(phone: string, purpose: OtpPurpose) {
@@ -32,7 +34,7 @@ export class OtpService {
       }),
     );
 
-    return { message: 'OTP sent successfully' };
+    return { message: this.i18n.t('auth.OTP_SENT') };
   }
 
   async verify(
@@ -50,7 +52,7 @@ export class OtpService {
     });
 
     if (!record || record.expires_at < new Date()) {
-      throw new BadRequestException('OTP غير صحيح');
+      throw new BadRequestException(this.i18n.t('auth.OTP_INVALID'));
     }
 
     record.used = true;

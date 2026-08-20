@@ -4,6 +4,8 @@ import { UpdateDoctorWorkingHoursDto } from './dto/update-doctor-working-hours.d
 import { Repository } from 'typeorm';
 import { Doctor } from 'src/doctors/entities/doctor.entity';
 import { DoctorSchedule } from './entities/doctor-schedule.entity';
+import { toStorageUrl } from 'src/storage/utils/storage-url.util';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class DoctorSchedulesService {
@@ -12,6 +14,7 @@ export class DoctorSchedulesService {
     private scheduleRepository: Repository<DoctorSchedule>,
     @InjectRepository(Doctor)
     private doctorRepository: Repository<Doctor>,
+    private readonly i18n: I18nService,
   ) {}
 
   async findAll(keyword?: string) {
@@ -32,6 +35,7 @@ export class DoctorSchedulesService {
     return doctors.map((doctor) => ({
       id: doctor.user_id,
       full_name: doctor.user.full_name,
+      image_path: toStorageUrl(doctor.user.image_path),
       specialty: doctor.specialty
         ? { id: doctor.specialty.id, title: doctor.specialty.title }
         : null,
@@ -47,7 +51,9 @@ export class DoctorSchedulesService {
     });
 
     if (!doctor) {
-      throw new NotFoundException('الطبيب غير موجود');
+      throw new NotFoundException(
+        this.i18n.t('doctor-schedules.DOCTOR_NOT_FOUND'),
+      );
     }
 
     const schedules = await this.scheduleRepository.find({
@@ -74,7 +80,9 @@ export class DoctorSchedulesService {
     });
 
     if (!doctor) {
-      throw new NotFoundException('الطبيب غير موجود');
+      throw new NotFoundException(
+        this.i18n.t('doctor-schedules.DOCTOR_NOT_FOUND'),
+      );
     }
 
     const results: DoctorSchedule[] = [];

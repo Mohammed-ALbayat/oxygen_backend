@@ -11,6 +11,7 @@ import { UserRole } from 'src/users/enums/user-roles.enum';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { DoctorMeResponseDto } from './dto/doctor-me-response.dto';
 import { toDoctorMeResponse } from './utils/doctor-response.util';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class DoctorsService {
@@ -23,14 +24,18 @@ export class DoctorsService {
 
     @InjectRepository(User)
     private userRepository: Repository<User>,
+
+    private readonly i18n: I18nService,
   ) {}
 
-  async createDoctor(dto: CreateDoctorDto) {
+  async createDoctor(dto: CreateDoctorDto): Promise<DoctorMeResponseDto> {
     const existing = await this.userRepository.findOne({
       where: { phone: dto.phone },
     });
     if (existing) {
-      throw new ConflictException('رقم الهاتف موجود مسبقاً');
+      throw new ConflictException(
+        this.i18n.t('doctors.PHONE_ALREADY_EXISTS'),
+      );
     }
     let hashedPassword: string = '';
     if (dto.password) {
@@ -41,13 +46,14 @@ export class DoctorsService {
       phone: dto.phone,
       password: hashedPassword,
       role: UserRole.DOCTOR,
+      image_path: dto.image_path ?? null,
     });
     const savedUser = await this.userRepository.save(user);
     const specialty = await this.specialtyRepository.findOne({
       where: { id: dto.specialty_id },
     });
     if (!specialty) {
-      throw new NotFoundException('القسم غير موجود');
+      throw new NotFoundException(this.i18n.t('doctors.SPECIALTY_NOT_FOUND'));
     }
     const doctor = this.doctorRepository.create({
       user: savedUser,
@@ -58,7 +64,17 @@ export class DoctorsService {
       doctor_percentage: dto.doctor_percentage,
     });
     await this.doctorRepository.save(doctor);
-    return savedUser;
+
+    const createdDoctor = await this.doctorRepository.findOne({
+      where: { user_id: savedUser.id },
+      relations: ['specialty', 'user', 'schedules'],
+    });
+
+    if (!createdDoctor) {
+      throw new NotFoundException(this.i18n.t('doctors.DOCTOR_NOT_FOUND'));
+    }
+
+    return toDoctorMeResponse(createdDoctor.user, createdDoctor);
   }
 
   async getMe(user: User): Promise<DoctorMeResponseDto> {
@@ -68,7 +84,7 @@ export class DoctorsService {
     });
 
     if (!doctor) {
-      throw new NotFoundException('الطبيب غير موجود');
+      throw new NotFoundException(this.i18n.t('doctors.DOCTOR_NOT_FOUND'));
     }
 
     return toDoctorMeResponse(doctor.user, doctor);
@@ -84,7 +100,7 @@ export class DoctorsService {
     });
 
     if (!doctor) {
-      throw new NotFoundException('الطبيب غير موجود');
+      throw new NotFoundException(this.i18n.t('doctors.DOCTOR_NOT_FOUND'));
     }
     if (updateData.full_name !== undefined) {
       doctor.user.full_name = updateData.full_name;
@@ -95,7 +111,7 @@ export class DoctorsService {
         where: { id: updateData.specialty_id },
       });
       if (!specialty) {
-        throw new NotFoundException('القسم غير موجود');
+        throw new NotFoundException(this.i18n.t('doctors.SPECIALTY_NOT_FOUND'));
       }
 
       doctor.specialty = specialty;
@@ -117,6 +133,10 @@ export class DoctorsService {
       doctor.doctor_percentage = updateData.doctor_percentage;
     }
 
+    if (updateData.image_path !== undefined) {
+      doctor.user.image_path = updateData.image_path;
+    }
+
     await this.userRepository.save(doctor.user);
     await this.doctorRepository.save(doctor);
 
@@ -126,7 +146,7 @@ export class DoctorsService {
     });
 
     if (!updatedDoctor) {
-      throw new NotFoundException('الطبيب غير موجود');
+      throw new NotFoundException(this.i18n.t('doctors.DOCTOR_NOT_FOUND'));
     }
 
     return toDoctorMeResponse(updatedDoctor.user, updatedDoctor);

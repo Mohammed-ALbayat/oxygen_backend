@@ -31,4 +31,8 @@ export class CreateDoctorDto {
 
   @IsNumber()
   doctor_percentage: number;
+
+  @IsOptional()
+  @IsString()
+  image_path?: string;
 }

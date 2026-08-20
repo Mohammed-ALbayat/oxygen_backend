@@ -7,18 +7,20 @@ import { UserStatus } from './enums/user-status.enum';
 import { UserRole } from './enums/user-roles.enum';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { toAdminMeResponse } from './utils/admin-response.util';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private readonly i18n: I18nService,
   ) {}
 
   async deleteUser(id: number) {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(this.i18n.t('users.USER_NOT_FOUND'));
     }
     return this.userRepository.remove(user);
   }
@@ -26,7 +28,7 @@ export class UsersService {
   async blockUser(id: number) {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(this.i18n.t('users.USER_NOT_FOUND'));
     }
     user.status = UserStatus.BLOCKED;
     return this.userRepository.save(user);
@@ -35,7 +37,7 @@ export class UsersService {
   async unblockUser(id: number) {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(this.i18n.t('users.USER_NOT_FOUND'));
     }
     user.status = UserStatus.ACTIVE;
     return this.userRepository.save(user);
@@ -44,7 +46,7 @@ export class UsersService {
   async togglestatus(id: number) {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(this.i18n.t('users.USER_NOT_FOUND'));
     }
     user.status =
       user.status === UserStatus.ACTIVE
@@ -56,7 +58,7 @@ export class UsersService {
   async resetPassword(id: number, newPassword: string) {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(this.i18n.t('users.USER_NOT_FOUND'));
     }
     user.password = await bcrypt.hash(newPassword, 10);
     return this.userRepository.save(user);
@@ -122,7 +124,9 @@ export class UsersService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
+      throw new NotFoundException(
+        this.i18n.t('users.USER_NOT_FOUND_WITH_ID', { args: { userId } }),
+      );
     }
 
     if (dto.password) {

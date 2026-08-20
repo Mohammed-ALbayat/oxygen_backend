@@ -18,6 +18,7 @@ import { Doctor } from 'src/doctors/entities/doctor.entity';
 import { PusherService } from '../pusher/pusher.service';
 import { CancellationReasonsService } from 'src/cancellation-reasons/cancellation-reasons.service';
 import { toStorageUrl } from 'src/storage/utils/storage-url.util';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class PatientAppointmentsService {
@@ -32,6 +33,7 @@ export class PatientAppointmentsService {
     private appointmentService: AppointmentsService,
     private pusherService: PusherService,
     private cancellationReasonsService: CancellationReasonsService,
+    private readonly i18n: I18nService,
   ) {}
 
   async findAllAppointment(
@@ -87,12 +89,14 @@ export class PatientAppointmentsService {
       await this.appointmentService.findAppointmentById(appointmentId);
 
     if (appointment.patient.userId !== patientId) {
-      throw new BadRequestException('Appointment belong to another patient');
+      throw new BadRequestException(
+        this.i18n.t('appointments.BELONGS_TO_ANOTHER_PATIENT'),
+      );
     }
 
     if (appointment.is_updated_by_patient) {
       throw new BadRequestException(
-        'You can only reschedule an appointment once',
+        this.i18n.t('appointments.RESCHEDULE_ONCE_ONLY'),
       );
     }
 
@@ -112,7 +116,9 @@ export class PatientAppointmentsService {
       await this.appointmentService.findAppointmentById(appointmentId);
 
     if (appointment.patient.userId !== patientId) {
-      throw new BadRequestException('Appointment belong to another patient');
+      throw new BadRequestException(
+        this.i18n.t('appointments.BELONGS_TO_ANOTHER_PATIENT'),
+      );
     }
 
     const reason = await this.cancellationReasonsService.findActiveOne(
@@ -138,7 +144,7 @@ export class PatientAppointmentsService {
 
     if (appointment.status !== AppointmentStatus.COMPLETE) {
       throw new BadRequestException(
-        'Only completed appointments can be reviewed',
+        this.i18n.t('appointments.ONLY_COMPLETED_REVIEWABLE'),
       );
     }
 
@@ -147,7 +153,9 @@ export class PatientAppointmentsService {
     });
 
     if (existing) {
-      throw new ConflictException('This appointment has already been reviewed');
+      throw new ConflictException(
+        this.i18n.t('appointments.ALREADY_REVIEWED'),
+      );
     }
 
     const review = this.reviewRepository.create({
@@ -170,7 +178,9 @@ export class PatientAppointmentsService {
     });
 
     if (!review) {
-      throw new NotFoundException('This appointment has not been reviewed yet');
+      throw new NotFoundException(
+        this.i18n.t('appointments.NOT_REVIEWED_YET'),
+      );
     }
 
     return toReviewDto(review, appointmentId);
@@ -181,7 +191,9 @@ export class PatientAppointmentsService {
       await this.appointmentService.findAppointmentById(appointmentId);
 
     if (appointment.patient.userId !== patientId) {
-      throw new BadRequestException('Appointment belong to another patient');
+      throw new BadRequestException(
+        this.i18n.t('appointments.BELONGS_TO_ANOTHER_PATIENT'),
+      );
     }
 
     return appointment;

@@ -10,6 +10,7 @@ export function toDoctorMeResponse(
   return {
     id: user.id,
     full_name: user.full_name ?? null,
+    role: user.role,
     phone: user.phone,
     birth_date: user.birth_date ?? null,
     gender: user.gender ?? null,

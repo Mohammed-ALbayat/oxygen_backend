@@ -15,6 +15,9 @@ export class AdminDoctorListItemDto {
   @ApiPropertyOptional()
   full_name: string | null;
 
+  @ApiPropertyOptional({ nullable: true })
+  image_path: string | null;
+
   @ApiPropertyOptional({ type: AdminDoctorSpecialtyDto })
   specialty: AdminDoctorSpecialtyDto | null;
 

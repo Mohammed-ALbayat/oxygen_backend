@@ -1,0 +1,4 @@
+{
+  "FROM_AFTER_TO": "\"from\" must not be later than \"to\"",
+  "RANGE_EXCEEDS_ONE_YEAR": "Report range cannot exceed one year"
+}

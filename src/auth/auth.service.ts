@@ -30,6 +30,7 @@ import { toAdminMeResponse } from 'src/users/utils/admin-response.util';
 import { DoctorMeResponseDto } from 'src/doctors/dto/doctor-me-response.dto';
 import { SecretaryMeResponseDto } from 'src/secretaries/dto/secretary-me-response.dto';
 import { AdminMeResponseDto } from 'src/users/dto/admin-me-response.dto';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class AuthService {
@@ -41,6 +42,7 @@ export class AuthService {
     @InjectRepository(Doctor) private doctorRepository: Repository<Doctor>,
     @InjectRepository(Secretary)
     private secretaryRepository: Repository<Secretary>,
+    private readonly i18n: I18nService,
   ) {}
 
   async login(dto: LoginDto) {
@@ -49,13 +51,17 @@ export class AuthService {
     });
 
     if (!user || !user.password) {
-      throw new UnauthorizedException('Invalid login credentials');
+      throw new UnauthorizedException(
+        this.i18n.t('auth.INVALID_LOGIN_CREDENTIALS'),
+      );
     }
 
     const isMatch = await bcrypt.compare(dto.password, user.password);
 
     if (!isMatch) {
-      throw new UnauthorizedException('Invalid login credentials');
+      throw new UnauthorizedException(
+        this.i18n.t('auth.INVALID_LOGIN_CREDENTIALS'),
+      );
     }
 
     await this.userRepository.save(user);
@@ -80,7 +86,9 @@ export class AuthService {
     } else if (user.role === UserRole.ADMIN) {
       userDetails = toAdminMeResponse(user);
     } else {
-      throw new UnauthorizedException('Invalid user role or unsupported role');
+      throw new UnauthorizedException(
+        this.i18n.t('auth.INVALID_USER_ROLE'),
+      );
     }
 
     return {
@@ -95,7 +103,9 @@ export class AuthService {
     });
 
     if (existing) {
-      throw new ConflictException('Phone number already exists');
+      throw new ConflictException(
+        this.i18n.t('auth.PHONE_ALREADY_EXISTS'),
+      );
     }
 
     const user = this.userRepository.create({
@@ -119,11 +129,15 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found or the user does not have a phone number');
+      throw new NotFoundException(
+        this.i18n.t('auth.USER_NOT_FOUND_OR_NO_PHONE'),
+      );
     }
 
     if (!user.phone?.trim()) {
-      throw new BadRequestException('User does not have a phone number');
+      throw new BadRequestException(
+        this.i18n.t('auth.USER_NO_PHONE'),
+      );
     }
 
     return this.otpService.create(user.phone, OtpPurpose.PATIENT_LOGIN);
@@ -141,7 +155,9 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new NotFoundException('Patient not found');
+      throw new NotFoundException(
+        this.i18n.t('auth.PATIENT_NOT_FOUND'),
+      );
     }
 
     const access_token = generateToken(user, UserRole.PATIENT, this.jwtService);
@@ -159,7 +175,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(this.i18n.t('auth.USER_NOT_FOUND'));
     }
 
     await this.otpService.verify(
@@ -171,7 +187,7 @@ export class AuthService {
     user.password = await bcrypt.hash(resetPasswordDto.newPassword, 10);
     await this.userRepository.save(user);
     return {
-      message: 'Password updated successfully',
+      message: this.i18n.t('auth.PASSWORD_UPDATED'),
     };
   }
 }

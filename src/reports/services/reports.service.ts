@@ -6,6 +6,7 @@ import { CancellationReportsService } from './cancellation-reports.service';
 import { RatingsReportsService } from './ratings-reports.service';
 import { RevenueReportsService } from './revenue-reports.service';
 import { WaitingTimeReportsService } from './waiting-time-reports.service';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class ReportsService {
@@ -14,28 +15,29 @@ export class ReportsService {
     private revenueReportsService: RevenueReportsService,
     private ratingsReportsService: RatingsReportsService,
     private waitingTimeReportsService: WaitingTimeReportsService,
+    private readonly i18n: I18nService,
   ) {}
 
   getCancellations(query: ReportDateRangeQueryDto) {
-    validateDateRange(query);
+    validateDateRange(query, this.i18n);
 
     return this.cancellationReportsService.getReport(query);
   }
 
   getRevenue(query: ReportDateRangeQueryDto) {
-    validateDateRange(query);
+    validateDateRange(query, this.i18n);
 
     return this.revenueReportsService.getReport(query);
   }
 
   getDoctorRatings(query: ReportDateRangeQueryDto) {
-    validateDateRange(query);
+    validateDateRange(query, this.i18n);
 
     return this.ratingsReportsService.getReport(query);
   }
 
   getWaitingTime(query: ReportDateRangeQueryDto) {
-    validateDateRange(query);
+    validateDateRange(query, this.i18n);
 
     return this.waitingTimeReportsService.getReport(query);
   }
@@ -43,7 +45,7 @@ export class ReportsService {
   async getDashboard(
     query: ReportDateRangeQueryDto,
   ): Promise<DashboardSummaryDto> {
-    validateDateRange(query);
+    validateDateRange(query, this.i18n);
 
     const [cancellations, revenue, doctorRatings, waitingTime] =
       await Promise.all([

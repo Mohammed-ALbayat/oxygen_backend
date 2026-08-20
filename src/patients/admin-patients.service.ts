@@ -12,6 +12,7 @@ import { CreatePatientProfileDto } from './dto/create-profile-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { UpdatePatientProfileDto } from './dto/update-profile-patient.dto';
 import { UserRole } from 'src/users/enums/user-roles.enum';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class AdminPatientsService {
@@ -21,6 +22,7 @@ export class AdminPatientsService {
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly i18n: I18nService,
   ) {}
   async createPatient(dto: CreatePatientDto) {
     const existing = await this.userRepository.findOne({
@@ -28,7 +30,9 @@ export class AdminPatientsService {
     });
 
     if (existing) {
-      throw new ConflictException('رقم الهاتف موجود مسبقاً');
+      throw new ConflictException(
+        this.i18n.t('patients.PHONE_ALREADY_EXISTS'),
+      );
     }
 
     const user = this.userRepository.create({
@@ -51,7 +55,9 @@ export class AdminPatientsService {
     });
 
     if (!user) {
-      throw new NotFoundException('المريض غير موجود');
+      throw new NotFoundException(
+        this.i18n.t('patients.PATIENT_NOT_FOUND'),
+      );
     }
 
     const existingProfile = await this.patientRepository.findOne({
@@ -59,7 +65,9 @@ export class AdminPatientsService {
     });
 
     if (existingProfile) {
-      throw new ConflictException('الملف الشخصي للمريض موجود مسبقاً');
+      throw new ConflictException(
+        this.i18n.t('patients.PROFILE_ALREADY_EXISTS'),
+      );
     }
 
     if (dto.birth_date !== undefined) {
@@ -89,7 +97,9 @@ export class AdminPatientsService {
       where: { id },
     });
     if (!patient) {
-      throw new NotFoundException('المريض غير موجود');
+      throw new NotFoundException(
+        this.i18n.t('patients.PATIENT_NOT_FOUND'),
+      );
     }
     if (updateData.full_name !== undefined) {
       patient.full_name = updateData.full_name;
@@ -103,7 +113,9 @@ export class AdminPatientsService {
       where: { id: userId, role: UserRole.PATIENT },
     });
     if (!user) {
-      throw new NotFoundException('المريض غير موجود');
+      throw new NotFoundException(
+        this.i18n.t('patients.PATIENT_NOT_FOUND'),
+      );
     }
 
     let patientProfile = await this.patientRepository.findOne({
@@ -111,7 +123,9 @@ export class AdminPatientsService {
       relations: ['user'],
     });
     if (!patientProfile) {
-      throw new NotFoundException('الملف الشخصي للمريض غير موجود');
+      throw new NotFoundException(
+        this.i18n.t('patients.PROFILE_NOT_FOUND'),
+      );
     }
 
     if (dto.birth_date !== undefined) {

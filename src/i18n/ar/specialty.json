@@ -1,0 +1,5 @@
+{
+  "TITLE_ALREADY_EXISTS": "Specialty with this title already exists",
+  "NOT_FOUND_WITH_ID": "Specialty with ID #{id} not found",
+  "CANNOT_DELETE_WITH_DOCTORS": "Cannot delete specialty that has associated doctors"
+}

@@ -1,0 +1,6 @@
+{
+  "PHONE_ALREADY_EXISTS": "Phone number already exists",
+  "PATIENT_NOT_FOUND": "Patient not found",
+  "PROFILE_ALREADY_EXISTS": "Patient profile already exists",
+  "PROFILE_NOT_FOUND": "Patient profile not found"
+}
