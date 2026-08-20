@@ -13,8 +13,11 @@ import {
   AppointmentStatus,
 } from 'src/appointments/entities/appointment.entity';
 import { Doctor } from 'src/doctors/entities/doctor.entity';
+import { Patient } from 'src/patients/entities/patient.entity';
 import { VisitsService } from './visits.service';
 import { I18nService } from 'nestjs-i18n';
+import { toPatientUserDetails } from 'src/patients/utils/patient-response.util';
+import { AppointmentWaitingTimeService } from 'src/appointments/appointment-waiting-time.service';
 
 @Injectable()
 export class DoctorVisitsService {
@@ -29,7 +32,11 @@ export class DoctorVisitsService {
 
     @InjectRepository(Doctor)
     private doctorRepository: Repository<Doctor>,
+
+    @InjectRepository(Patient)
+    private patientRepository: Repository<Patient>,
     private readonly i18n: I18nService,
+    private readonly appointmentWaitingTimeService: AppointmentWaitingTimeService,
   ) {}
 
   async create(createVisitDto: CreateVisitDto) {
@@ -41,8 +48,30 @@ export class DoctorVisitsService {
         this.i18n.t('visits.VISIT_ALREADY_EXISTS'),
       );
     }
+
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id: createVisitDto.appointment_id },
+    });
+    if (!appointment) {
+      throw new NotFoundException(
+        this.i18n.t('appointments.APPOINTMENT_NOT_FOUND'),
+      );
+    }
+
     const visit = this.visitRepository.create(createVisitDto);
-    return this.visitRepository.save(visit);
+    const savedVisit = await this.visitRepository.save(visit);
+
+    if (appointment.status !== AppointmentStatus.COMPLETE) {
+      this.appointmentWaitingTimeService.applyTransition(
+        appointment,
+        appointment.status,
+        AppointmentStatus.COMPLETE,
+      );
+      appointment.status = AppointmentStatus.COMPLETE;
+      await this.appointmentRepository.save(appointment);
+    }
+
+    return savedVisit;
   }
 
   async findAll(doctor_id: number) {
@@ -59,6 +88,19 @@ export class DoctorVisitsService {
   }
 
   async patientVisits(doctor_id: number, patient_id: number) {
+    const patient = await this.patientRepository.findOne({
+      where: { userId: patient_id },
+      relations: ['user'],
+    });
+
+    if (!patient) {
+      throw new NotFoundException(
+        this.i18n.t('patients.PATIENT_NOT_FOUND'),
+      );
+    }
+
+    const user_details = toPatientUserDetails(patient.user, patient);
+
     const appointments = await this.appointmentRepository.find({
       where: {
         doctor: { user_id: doctor_id },
@@ -68,7 +110,7 @@ export class DoctorVisitsService {
     });
 
     if (appointments.length === 0) {
-      return [];
+      return { user_details, visits: [] };
     }
 
     const hasActiveAppointment = appointments.some(
@@ -77,8 +119,10 @@ export class DoctorVisitsService {
         app.status === AppointmentStatus.WAITING,
     );
 
+    let visits: Visit[];
+
     if (hasActiveAppointment) {
-      return await this.visitRepository.find({
+      visits = await this.visitRepository.find({
         where: {
           appointment: {
             patient: { userId: patient_id },
@@ -86,22 +130,25 @@ export class DoctorVisitsService {
         },
         order: { created_at: 'DESC' },
       });
+    } else {
+      const doctor = await this.doctorRepository.findOne({
+        where: { user_id: doctor_id },
+        relations: ['specialty'],
+      });
+      const department_id = doctor?.specialty?.id;
+
+      visits = await this.visitRepository.find({
+        where: {
+          appointment: {
+            department: { id: department_id },
+            patient: { userId: patient_id },
+          },
+        },
+        order: { created_at: 'DESC' },
+      });
     }
 
-    const doctor = await this.doctorRepository.findOne({
-      where: { user_id: doctor_id },
-    });
-    const department_id = doctor?.specialty.id;
-
-    return await this.visitRepository.find({
-      where: {
-        appointment: {
-          department: { id: department_id },
-          patient: { userId: patient_id },
-        },
-      },
-      order: { created_at: 'DESC' },
-    });
+    return { user_details, visits };
   }
 
   async update(doctor_id: number, id: number, updateVisitDto: UpdateVisitDto) {
