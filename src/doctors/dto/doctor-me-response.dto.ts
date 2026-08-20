@@ -1,10 +1,12 @@
 import { Specialty } from 'src/specialty/entities/specialty.entity';
 import { Gender } from 'src/users/enums/gender.enum';
 import { DoctorSchedule } from 'src/doctor-schedules/entities/doctor-schedule.entity';
+import { UserRole } from 'src/users/enums/user-roles.enum';
 
 export class DoctorMeResponseDto {
   id: number;
   full_name: string | null;
+  role: UserRole;
   phone: string;
   birth_date: Date | null;
   gender: Gender | null;
