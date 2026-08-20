@@ -76,13 +76,16 @@ export class AppointmentsService {
     patientId: number,
     date: string,
     start_time: string,
+    options?: { allowPastDate?: boolean },
   ) {
     const targetDate = date;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (new Date(targetDate) < today) {
-      throw new BadRequestException('Cannot book an appointment in the past');
+    if (!options?.allowPastDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (new Date(targetDate) < today) {
+        throw new BadRequestException('Cannot book an appointment in the past');
+      }
     }
 
     const doctor = await this.doctorRepository.findOne({
@@ -192,13 +195,18 @@ export class AppointmentsService {
     appointment: Appointment,
     date: string | undefined,
     start_time: string | undefined,
+    options?: { bypassTimeConstraints?: boolean },
   ) {
     this.checkAppointmentEligibility(appointment);
 
     const newDate = date ?? extractDateString(appointment.appointment_date);
     const newStartTime = start_time ?? appointment.start_time;
 
-    this.validateTimeConstraints(appointment, newDate);
+    this.validateTimeConstraints(
+      appointment,
+      newDate,
+      options?.bypassTimeConstraints,
+    );
 
     const schedule = await this.verifyDoctorSchedule(
       appointment.doctor.user_id,
@@ -282,7 +290,12 @@ export class AppointmentsService {
   private validateTimeConstraints(
     appointment: Appointment,
     targetDateString: string,
+    bypassTimeConstraints = false,
   ) {
+    if (bypassTimeConstraints) {
+      return;
+    }
+
     const targetDate = new Date(targetDateString);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -455,10 +468,17 @@ export class AppointmentsService {
             ?.status.includes(AppointmentStatus.CANCELLED),
       }));
 
+      const todayString = formatLocalDate(new Date());
+      const currentTime = new Date().toTimeString().slice(0, 5);
+      const visibleSlots =
+        dateString === todayString
+          ? slots.filter((slot) => slot.time > currentTime)
+          : slots;
+
       availableDays.push({
         date: dateString,
         day: dayEnum,
-        slots,
+        slots: visibleSlots,
       });
     }
 
