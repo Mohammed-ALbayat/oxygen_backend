@@ -28,4 +28,8 @@ export class UpdateDoctorFullDto {
   @IsOptional()
   @IsNumber()
   doctor_percentage?: number;
+
+  @IsOptional()
+  @IsString()
+  image_path?: string | null;
 }

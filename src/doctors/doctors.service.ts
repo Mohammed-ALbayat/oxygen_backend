@@ -25,7 +25,7 @@ export class DoctorsService {
     private userRepository: Repository<User>,
   ) {}
 
-  async createDoctor(dto: CreateDoctorDto) {
+  async createDoctor(dto: CreateDoctorDto): Promise<DoctorMeResponseDto> {
     const existing = await this.userRepository.findOne({
       where: { phone: dto.phone },
     });
@@ -41,6 +41,7 @@ export class DoctorsService {
       phone: dto.phone,
       password: hashedPassword,
       role: UserRole.DOCTOR,
+      image_path: dto.image_path ?? null,
     });
     const savedUser = await this.userRepository.save(user);
     const specialty = await this.specialtyRepository.findOne({
@@ -58,7 +59,17 @@ export class DoctorsService {
       doctor_percentage: dto.doctor_percentage,
     });
     await this.doctorRepository.save(doctor);
-    return savedUser;
+
+    const createdDoctor = await this.doctorRepository.findOne({
+      where: { user_id: savedUser.id },
+      relations: ['specialty', 'user', 'schedules'],
+    });
+
+    if (!createdDoctor) {
+      throw new NotFoundException('الطبيب غير موجود');
+    }
+
+    return toDoctorMeResponse(createdDoctor.user, createdDoctor);
   }
 
   async getMe(user: User): Promise<DoctorMeResponseDto> {
@@ -115,6 +126,10 @@ export class DoctorsService {
 
     if (updateData.doctor_percentage !== undefined) {
       doctor.doctor_percentage = updateData.doctor_percentage;
+    }
+
+    if (updateData.image_path !== undefined) {
+      doctor.user.image_path = updateData.image_path;
     }
 
     await this.userRepository.save(doctor.user);

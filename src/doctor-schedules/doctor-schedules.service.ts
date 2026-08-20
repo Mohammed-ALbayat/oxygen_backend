@@ -4,6 +4,7 @@ import { UpdateDoctorWorkingHoursDto } from './dto/update-doctor-working-hours.d
 import { Repository } from 'typeorm';
 import { Doctor } from 'src/doctors/entities/doctor.entity';
 import { DoctorSchedule } from './entities/doctor-schedule.entity';
+import { toStorageUrl } from 'src/storage/utils/storage-url.util';
 
 @Injectable()
 export class DoctorSchedulesService {
@@ -32,6 +33,7 @@ export class DoctorSchedulesService {
     return doctors.map((doctor) => ({
       id: doctor.user_id,
       full_name: doctor.user.full_name,
+      image_path: toStorageUrl(doctor.user.image_path),
       specialty: doctor.specialty
         ? { id: doctor.specialty.id, title: doctor.specialty.title }
         : null,
