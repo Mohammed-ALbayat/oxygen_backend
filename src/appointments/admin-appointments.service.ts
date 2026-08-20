@@ -186,6 +186,14 @@ export class AdminAppointmentsService {
       appointment,
       paymentStatus,
     );
+
+    if (
+      [PaymentStatus.PAID, PaymentStatus.DEPOSIT_PAID].includes(paymentStatus) &&
+      appointment.status === AppointmentStatus.PENDING
+    ) {
+      appointment.status = AppointmentStatus.ACTIVE;
+    }
+
     await this.appointmentRepository.save(appointment);
 
     return {
