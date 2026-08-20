@@ -1,0 +1,9 @@
+{
+  "CHECKOUT_ERROR": "An error occurred while preparing the payment page",
+  "APPOINTMENT_NOT_FOUND": "Appointment not found",
+  "NO_PAYMENT_TO_REFUND": "No payment is linked to this appointment to refund",
+  "REFUND_ERROR": "An error occurred while attempting to refund from the payment gateway",
+  "REFUND_SUCCESS": "Appointment cancelled and deposit refunded successfully",
+  "MISSING_SIGNATURE": "Missing stripe-signature header",
+  "RAW_BODY_MISSING": "Raw body is missing."
+}

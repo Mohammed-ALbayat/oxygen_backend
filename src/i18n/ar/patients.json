@@ -1,0 +1,6 @@
+{
+  "PHONE_ALREADY_EXISTS": "رقم الهاتف موجود مسبقاً",
+  "PATIENT_NOT_FOUND": "المريض غير موجود",
+  "PROFILE_ALREADY_EXISTS": "الملف الشخصي للمريض موجود مسبقاً",
+  "PROFILE_NOT_FOUND": "الملف الشخصي للمريض غير موجود"
+}

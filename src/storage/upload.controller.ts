@@ -27,6 +27,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { UserRole } from '../users/enums/user-roles.enum';
+import { I18nService } from 'nestjs-i18n';
 
 @ApiTags('Storage')
 @ApiBearerAuth()
@@ -35,6 +36,7 @@ export class UploadController {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private readonly i18n: I18nService,
   ) {}
 
   @Post('me/profile-picture')
@@ -61,7 +63,7 @@ export class UploadController {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(this.i18n.t('storage.USER_NOT_FOUND'));
     }
 
     user.image_path = file?.filename ?? null;
@@ -69,8 +71,8 @@ export class UploadController {
 
     return {
       message: file
-        ? 'Your profile picture has been updated successfully'
-        : 'Your profile picture has been removed successfully',
+        ? this.i18n.t('storage.PROFILE_UPDATED')
+        : this.i18n.t('storage.PROFILE_REMOVED'),
       image_path: toStorageUrl(user.image_path),
     };
   }
@@ -96,7 +98,7 @@ export class UploadController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) {
-      throw new BadRequestException('File is required');
+      throw new BadRequestException(this.i18n.t('storage.FILE_REQUIRED'));
     }
     
     const user = await this.userRepository.findOne({
@@ -104,14 +106,18 @@ export class UploadController {
     });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
+      throw new NotFoundException(
+        this.i18n.t('storage.USER_NOT_FOUND_WITH_ID', { args: { userId } }),
+      );
     }
 
     user.image_path = file.filename;
     await this.userRepository.save(user);
 
     return {
-      message: `Profile picture for user ID ${userId} updated successfully`,
+      message: this.i18n.t('storage.PROFILE_UPDATED_FOR_USER', {
+        args: { userId },
+      }),
       image_path: toStorageUrl(user.image_path),
     };
   }
@@ -136,11 +142,11 @@ export class UploadController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) {
-      throw new BadRequestException('File is required');
+      throw new BadRequestException(this.i18n.t('storage.FILE_REQUIRED'));
     }
     const imagePath = file.filename;
     return {
-      message: `Image uploaded successfully`,
+      message: this.i18n.t('storage.IMAGE_UPLOADED'),
       imagePath: imagePath,
     };
   }

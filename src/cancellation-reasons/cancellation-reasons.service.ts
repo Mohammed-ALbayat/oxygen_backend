@@ -8,12 +8,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CancellationReason } from './entities/cancellation-reason.entity';
 import { CreateCancellationReasonDto } from './dto/create-cancellation-reason.dto';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class CancellationReasonsService {
   constructor(
     @InjectRepository(CancellationReason)
     private cancellationReasonRepository: Repository<CancellationReason>,
+    private readonly i18n: I18nService,
   ) {}
 
   async findActive() {
@@ -38,7 +40,7 @@ export class CancellationReasonsService {
 
     if (existing) {
       throw new ConflictException(
-        'Cancellation reason with this label already exists',
+        this.i18n.t('cancellation-reasons.LABEL_ALREADY_EXISTS'),
       );
     }
 
@@ -62,7 +64,7 @@ export class CancellationReasonsService {
 
     if (!reason) {
       throw new NotFoundException(
-        `Cancellation reason with ID #${id} not found`,
+        this.i18n.t('cancellation-reasons.NOT_FOUND_WITH_ID', { args: { id } }),
       );
     }
 
@@ -78,7 +80,7 @@ export class CancellationReasonsService {
 
     if (!reason.is_active) {
       throw new BadRequestException(
-        'This cancellation reason is no longer available',
+        this.i18n.t('cancellation-reasons.NO_LONGER_AVAILABLE'),
       );
     }
 

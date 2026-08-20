@@ -1,0 +1,6 @@
+{
+  "VISIT_NOT_FOUND": "This visit does not exist",
+  "VISIT_ALREADY_EXISTS": "A visit has already been added for this appointment",
+  "VISIT_NOT_FOUND_DOCTOR": "This visit does not exist",
+  "VISIT_DELETED": "Visit #{id} deleted successfully"
+}

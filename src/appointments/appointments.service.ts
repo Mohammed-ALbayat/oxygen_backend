@@ -21,7 +21,7 @@ import {
   extractDateString,
   generateTargetDates,
 } from './utils/date.helper';
-
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class AppointmentsService {
@@ -34,6 +34,7 @@ export class AppointmentsService {
     private doctorRepository: Repository<Doctor>,
     @InjectRepository(Specialty)
     private specialtyRepository: Repository<Specialty>,
+    private readonly i18n: I18nService,
   ) {}
 
   async getDoctorSlots(doctorId: number, date?: string) {
@@ -48,7 +49,9 @@ export class AppointmentsService {
     });
 
     if (isSingleDate && schedules.length === 0) {
-      throw new NotFoundException('No schedule found for this doctor');
+      throw new NotFoundException(
+        this.i18n.t('appointments.NO_SCHEDULE_FOUND'),
+      );
     }
 
     const appointments = await this.fetchAppointmentsWithinRange(
@@ -84,7 +87,9 @@ export class AppointmentsService {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       if (new Date(targetDate) < today) {
-        throw new BadRequestException('Cannot book an appointment in the past');
+        throw new BadRequestException(
+          this.i18n.t('appointments.CANNOT_BOOK_IN_PAST'),
+        );
       }
     }
 
@@ -94,7 +99,9 @@ export class AppointmentsService {
     });
 
     if (!doctor) {
-      throw new NotFoundException('Doctor not found');
+      throw new NotFoundException(
+        this.i18n.t('appointments.DOCTOR_NOT_FOUND'),
+      );
     }
 
     const schedule = await this.verifyDoctorSchedule(
@@ -125,7 +132,7 @@ export class AppointmentsService {
     await this.appointmentRepository.save(appointment);
 
     return {
-      message: 'Appointment booked successfully',
+      message: this.i18n.t('appointments.BOOKED_SUCCESS'),
       appointment,
     };
   }
@@ -146,7 +153,9 @@ export class AppointmentsService {
     });
 
     if (!appointment) {
-      throw new NotFoundException('Appointment not found');
+      throw new NotFoundException(
+        this.i18n.t('appointments.APPOINTMENT_NOT_FOUND'),
+      );
     }
 
     return appointment;
@@ -233,7 +242,7 @@ export class AppointmentsService {
     await this.appointmentRepository.save(appointment);
 
     return {
-      message: 'Appointment rescheduled successfully',
+      message: this.i18n.t('appointments.RESCHEDULED_SUCCESS'),
       appointment,
     };
   }
@@ -261,7 +270,7 @@ export class AppointmentsService {
     await this.appointmentRepository.save(appointment);
 
     return {
-      message: 'Appointment cancelled successfully',
+      message: this.i18n.t('appointments.CANCELLED_SUCCESS'),
       appointment,
     };
   }
@@ -271,7 +280,9 @@ export class AppointmentsService {
    */
   private checkAppointmentEligibility(appointment: Appointment) {
     if (appointment.status === AppointmentStatus.CANCELLED) {
-      throw new BadRequestException('Cannot update a cancelled appointment');
+      throw new BadRequestException(
+        this.i18n.t('appointments.CANNOT_UPDATE_CANCELLED'),
+      );
     }
     if (
       [AppointmentStatus.START, AppointmentStatus.COMPLETE].includes(
@@ -279,7 +290,7 @@ export class AppointmentsService {
       )
     ) {
       throw new BadRequestException(
-        'This appointment can no longer be modified',
+        this.i18n.t('appointments.CANNOT_MODIFY'),
       );
     }
   }
@@ -301,7 +312,9 @@ export class AppointmentsService {
     today.setHours(0, 0, 0, 0);
 
     if (targetDate < today) {
-      throw new BadRequestException('Cannot set appointment date in the past');
+      throw new BadRequestException(
+        this.i18n.t('appointments.CANNOT_SET_DATE_IN_PAST'),
+      );
     }
 
     const originalAppointmentDateTime = new Date(
@@ -314,7 +327,7 @@ export class AppointmentsService {
 
     if (hoursDifference < 24) {
       throw new BadRequestException(
-        'Appointments cannot be modified within 24 hours',
+        this.i18n.t('appointments.CANNOT_MODIFY_WITHIN_24H'),
       );
     }
   }
@@ -339,10 +352,12 @@ export class AppointmentsService {
     });
 
     if (!schedule)
-      throw new BadRequestException('Doctor not available on this day');
+      throw new BadRequestException(
+        this.i18n.t('appointments.DOCTOR_NOT_AVAILABLE'),
+      );
     if (schedule.slot_duration <= 0)
       throw new BadRequestException(
-        'Doctor schedule is configured incorrectly',
+        this.i18n.t('appointments.SCHEDULE_MISCONFIGURED'),
       );
 
     const allSlots = generateTimeSlots(
@@ -351,7 +366,9 @@ export class AppointmentsService {
       schedule.slot_duration,
     );
     if (!allSlots.includes(requestedTime)) {
-      throw new BadRequestException('Selected time is outside doctor schedule');
+      throw new BadRequestException(
+        this.i18n.t('appointments.TIME_OUTSIDE_SCHEDULE'),
+      );
     }
 
     return schedule;
@@ -389,10 +406,12 @@ export class AppointmentsService {
     ]);
 
     if (doctorConflict)
-      throw new BadRequestException('This slot is already booked');
+      throw new BadRequestException(
+        this.i18n.t('appointments.SLOT_ALREADY_BOOKED'),
+      );
     if (patientConflict)
       throw new BadRequestException(
-        'You already have another appointment at this time',
+        this.i18n.t('appointments.PATIENT_SLOT_CONFLICT'),
       );
   }
 
@@ -440,7 +459,7 @@ export class AppointmentsService {
       if (!schedule) {
         if (isSingleDate) {
           throw new NotFoundException(
-            'No schedule found for this doctor on this day',
+            this.i18n.t('appointments.NO_SCHEDULE_FOUND_ON_DAY'),
           );
         }
         continue;

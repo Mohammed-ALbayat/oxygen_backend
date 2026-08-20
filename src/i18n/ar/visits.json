@@ -1,0 +1,6 @@
+{
+  "VISIT_NOT_FOUND": "هذه الزيارة غير موجودة",
+  "VISIT_ALREADY_EXISTS": "لقد تمت إضافة زيارة لهذا الموعد مسبقا",
+  "VISIT_NOT_FOUND_DOCTOR": "لا وجود لهذه الزيارة",
+  "VISIT_DELETED": "تم حذف الزيارة رقم #{id} بنجاح"
+}

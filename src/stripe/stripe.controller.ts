@@ -12,12 +12,14 @@ import type { Request } from 'express';
 import { StripeService } from './stripe.service';
 import { PaymentStatus } from 'src/appointments/entities/appointment.entity';
 import { AdminAppointmentsService } from 'src/appointments/admin-appointments.service';
+import { I18nService } from 'nestjs-i18n';
 
 @Controller('stripe')
 export class StripeController {
   constructor(
     private readonly stripeService: StripeService,
     private readonly adminAppointmentsService: AdminAppointmentsService,
+    private readonly i18n: I18nService,
   ) {}
 
   // 1. مسار إنشاء جلسة الدفع (الذي سيستخدمه الفرونت إند)
@@ -50,11 +52,15 @@ export class StripeController {
     @Req() req: Request & { rawBody?: Buffer },
   ) {
     if (!signature) {
-      throw new BadRequestException('Missing stripe-signature header');
+      throw new BadRequestException(
+        this.i18n.t('stripe.MISSING_SIGNATURE'),
+      );
     }
 
     if (!req.rawBody) {
-      throw new BadRequestException('Raw body is missing.');
+      throw new BadRequestException(
+        this.i18n.t('stripe.RAW_BODY_MISSING'),
+      );
     }
 
     let event;

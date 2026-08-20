@@ -1,0 +1,5 @@
+{
+  "LABEL_ALREADY_EXISTS": "Cancellation reason with this label already exists",
+  "NOT_FOUND_WITH_ID": "Cancellation reason with ID #{id} not found",
+  "NO_LONGER_AVAILABLE": "This cancellation reason is no longer available"
+}

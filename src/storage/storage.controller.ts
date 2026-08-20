@@ -8,16 +8,20 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { UPLOADS_DIR } from './config/upload-path';
+import { I18nService } from 'nestjs-i18n';
 
 @Controller('storage')
 export class StorageController {
+  constructor(private readonly i18n: I18nService) {}
   @Get()
   serveImageByQuery(
     @Query('filename') filename: string,
     @Res() res: Response,
   ) {
     if (!filename) {
-      throw new BadRequestException('filename query parameter is required');
+      throw new BadRequestException(
+        this.i18n.t('storage.FILENAME_REQUIRED'),
+      );
     }
 
     this.validateFilename(filename);
@@ -36,7 +40,7 @@ export class StorageController {
     const isValid = /^[a-zA-Z0-9-]+\.(png|jpg|jpeg|webp)$/.test(filename);
     if (!isValid) {
       throw new BadRequestException(
-        'Invalid filename or potentially dangerous path detected',
+        this.i18n.t('storage.INVALID_FILENAME'),
       );
     }
   }

@@ -19,6 +19,7 @@ import { StripeModule } from './stripe/stripe.module';
 import { QueueModule } from './queue/queue.module';
 import { CancellationReasonsModule } from './cancellation-reasons/cancellation-reasons.module';
 import { ReportsModule } from './reports/reports.module';
+import { i18nModule } from './common/i18n/i18n.config';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ReportsModule } from './reports/reports.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    i18nModule,
     DoctorsModule,
     DatabaseModule,
     SpecialtyModule,

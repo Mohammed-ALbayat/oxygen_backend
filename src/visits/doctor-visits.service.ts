@@ -14,6 +14,7 @@ import {
 } from 'src/appointments/entities/appointment.entity';
 import { Doctor } from 'src/doctors/entities/doctor.entity';
 import { VisitsService } from './visits.service';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class DoctorVisitsService {
@@ -28,6 +29,7 @@ export class DoctorVisitsService {
 
     @InjectRepository(Doctor)
     private doctorRepository: Repository<Doctor>,
+    private readonly i18n: I18nService,
   ) {}
 
   async create(createVisitDto: CreateVisitDto) {
@@ -35,7 +37,9 @@ export class DoctorVisitsService {
       where: { appointment_id: createVisitDto.appointment_id },
     });
     if (existing) {
-      throw new ConflictException('لقد تمت إضافة زيارة لهذا الموعد مسبقا');
+      throw new ConflictException(
+        this.i18n.t('visits.VISIT_ALREADY_EXISTS'),
+      );
     }
     const visit = this.visitRepository.create(createVisitDto);
     return this.visitRepository.save(visit);
@@ -113,7 +117,9 @@ export class DoctorVisitsService {
 
     await this.visitRepository.remove(visit);
 
-    return { message: `تم حذف الزيارة رقم #${id} بنجاح` };
+    return {
+      message: this.i18n.t('visits.VISIT_DELETED', { args: { id } }),
+    };
   }
 
   async findDoctorVisitById(visitId: number, doctor_id: number) {
@@ -122,7 +128,9 @@ export class DoctorVisitsService {
     });
 
     if (!visit) {
-      throw new NotFoundException('لا وجود لهذه الزيارة');
+      throw new NotFoundException(
+        this.i18n.t('visits.VISIT_NOT_FOUND_DOCTOR'),
+      );
     }
 
     return visit;

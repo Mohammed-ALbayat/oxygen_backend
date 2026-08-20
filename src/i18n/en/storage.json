@@ -1,0 +1,11 @@
+{
+  "USER_NOT_FOUND": "User not found",
+  "USER_NOT_FOUND_WITH_ID": "User with ID {userId} not found",
+  "FILE_REQUIRED": "File is required",
+  "FILENAME_REQUIRED": "filename query parameter is required",
+  "INVALID_FILENAME": "Invalid filename or potentially dangerous path detected",
+  "PROFILE_UPDATED": "Your profile picture has been updated successfully",
+  "PROFILE_REMOVED": "Your profile picture has been removed successfully",
+  "PROFILE_UPDATED_FOR_USER": "Profile picture for user ID {userId} updated successfully",
+  "IMAGE_UPLOADED": "Image uploaded successfully"
+}

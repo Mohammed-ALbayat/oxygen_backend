@@ -2,12 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Visit } from './entities/visit.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class AdminVisitsService {
   constructor(
     @InjectRepository(Visit)
     private visitRepository: Repository<Visit>,
+    private readonly i18n: I18nService,
   ) {}
 
   async findAll(page: number, limit: number, patientId?: number) {
@@ -31,7 +33,9 @@ export class AdminVisitsService {
   async findOne(id: number) {
     const visit = await this.visitRepository.findOne({ where: { id: id } });
     if (!visit) {
-      throw new NotFoundException('هذه الزيارة غير موجودة');
+      throw new NotFoundException(
+        this.i18n.t('visits.VISIT_NOT_FOUND'),
+      );
     }
     return visit;
   }
@@ -41,6 +45,8 @@ export class AdminVisitsService {
 
     await this.visitRepository.remove(visit);
 
-    return { message: `تم حذف الزيارة رقم #${id} بنجاح` };
+    return {
+      message: this.i18n.t('visits.VISIT_DELETED', { args: { id } }),
+    };
   }
 }

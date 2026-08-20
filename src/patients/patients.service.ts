@@ -7,6 +7,7 @@ import { UserRole } from 'src/users/enums/user-roles.enum';
 import { UpdateMeDto } from './dto/update-me.dto';
 import { PatientMeResponseDto } from './dto/patient-me-response.dto';
 import { toPatientMeResponse } from './utils/patient-response.util';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class PatientsService {
@@ -16,6 +17,7 @@ export class PatientsService {
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly i18n: I18nService,
   ) {}
 
   async getMe(user: User): Promise<PatientMeResponseDto> {
@@ -26,7 +28,9 @@ export class PatientsService {
     });
 
     if (!currentUser) {
-      throw new NotFoundException('المريض غير موجود');
+      throw new NotFoundException(
+        this.i18n.t('patients.PATIENT_NOT_FOUND'),
+      );
     }
 
     return toPatientMeResponse(currentUser, currentUser.patient ?? null);
@@ -40,7 +44,9 @@ export class PatientsService {
     });
 
     if (!currentUser) {
-      throw new NotFoundException('المريض غير موجود');
+      throw new NotFoundException(
+        this.i18n.t('patients.PATIENT_NOT_FOUND'),
+      );
     }
 
     if (dto.full_name !== undefined) {

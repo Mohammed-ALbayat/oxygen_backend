@@ -7,6 +7,7 @@ import { DoctorAppointmentDto } from './dto/doctor-appointment-list-item.dto';
 import { DoctorReviewListItemDto } from './dto/appointment-review.dto';
 import { toReviewDto } from './utils/to-review-dto';
 import { extractDateString } from './utils/date.helper';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class DoctorAppointmentsService {
@@ -15,6 +16,7 @@ export class DoctorAppointmentsService {
     private appointmentRepository: Repository<Appointment>,
     @InjectRepository(AppointmentReview)
     private reviewRepository: Repository<AppointmentReview>,
+    private readonly i18n: I18nService,
   ) {}
 
   async getDoctorAppointments(
@@ -22,7 +24,9 @@ export class DoctorAppointmentsService {
     status?: AppointmentStatus,
   ): Promise<DoctorAppointmentDto[]> {
     if (status && !Object.values(AppointmentStatus).includes(status)) {
-      throw new BadRequestException('Invalid appointment status');
+      throw new BadRequestException(
+        this.i18n.t('appointments.INVALID_STATUS'),
+      );
     }
     const appointments = await this.appointmentRepository
       .createQueryBuilder('appointment')
