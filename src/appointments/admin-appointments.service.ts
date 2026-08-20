@@ -47,6 +47,7 @@ export class AdminAppointmentsService {
       dto.patientId,
       dto.date,
       dto.start_time,
+      { allowPastDate: true },
     );
 
     await this.pusherService.triggerEvent(
@@ -120,6 +121,7 @@ export class AdminAppointmentsService {
       appointment,
       dto.date,
       dto.start_time,
+      { bypassTimeConstraints: true },
     );
   }
 

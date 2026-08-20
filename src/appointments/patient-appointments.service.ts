@@ -17,6 +17,7 @@ import { toReviewDto } from './utils/to-review-dto';
 import { Doctor } from 'src/doctors/entities/doctor.entity';
 import { PusherService } from '../pusher/pusher.service';
 import { CancellationReasonsService } from 'src/cancellation-reasons/cancellation-reasons.service';
+import { toStorageUrl } from 'src/storage/utils/storage-url.util';
 
 @Injectable()
 export class PatientAppointmentsService {
@@ -47,9 +48,17 @@ export class PatientAppointmentsService {
 
     const appointments = await this.appointmentRepository.find({
       where: whereConditions,
+      relations: { doctor: { user: true } },
     });
 
-    return appointments;
+    return appointments.map((appointment) => ({
+      ...appointment,
+      doctor: {
+        id: appointment.doctor.user_id,
+        name: appointment.doctor.user.full_name,
+        image_path: toStorageUrl(appointment.doctor.user.image_path),
+      },
+    }));
   }
 
   async createAppointment(patientId: number, dto: PatientCreateAppointmentDto) {
