@@ -26,6 +26,7 @@ import { MessageDto } from 'src/common/dto/message.dto';
 import { AdminCreateAppointmentDto } from './dto/admin-create-appointment.dto';
 import { ApiEndpoint } from 'src/common/swagger/api-endpoint.decorator';
 import { UpdateAppointmentDto } from './dto/admin-update-appointment.dto';
+import { UpdateCollectedAmountDto } from './dto/update-collected-amount.dto';
 import {
   AppointmentStatus,
   PaymentStatus,
@@ -44,6 +45,7 @@ export class AdminAppointmentsController {
   @ApiQuery({ name: 'page', required: true, type: Number })
   @ApiQuery({ name: 'limit', required: true, type: Number })
   @ApiQuery({ name: 'patient_id', required: false, type: Number })
+  @ApiQuery({ name: 'specialty_id', required: false, type: Number })
   @ApiQuery({
     name: 'appointment_status',
     required: false,
@@ -59,6 +61,8 @@ export class AdminAppointmentsController {
     @Query('limit', ParseIntPipe) limit: number,
     @Query('patient_id', new ParseIntPipe({ optional: true }))
     patientId?: number,
+    @Query('specialty_id', new ParseIntPipe({ optional: true }))
+    specialtyId?: number,
     @Query('appointment_status') appointment_status?: AppointmentStatus,
   ) {
     return this.adminAppointmentsService.findAll(
@@ -66,6 +70,7 @@ export class AdminAppointmentsController {
       limit,
       appointment_status,
       patientId,
+      specialtyId,
     );
   }
 
@@ -181,5 +186,18 @@ export class AdminAppointmentsController {
       +id,
       paymentStatus,
     );
+  }
+
+  @Patch('update-collected-amount/:id')
+  @ApiOkResponse({ type: MessageDto })
+  @ApiEndpoint('Record the amount collected for an appointment', [
+    UserRole.ADMIN,
+    UserRole.SECRETARY,
+  ])
+  updateCollectedAmount(
+    @Param('id') id: string,
+    @Body() dto: UpdateCollectedAmountDto,
+  ) {
+    return this.adminAppointmentsService.updateCollectedAmount(+id, dto);
   }
 }

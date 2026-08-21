@@ -76,6 +76,7 @@ export class SpecialtyService {
           user: {
             id: true,
             full_name: true,
+            image_path: true,
           },
         },
       },
@@ -119,6 +120,7 @@ export class SpecialtyService {
           user: {
             id: true,
             full_name: true,
+            image_path: true,
           },
         },
       },

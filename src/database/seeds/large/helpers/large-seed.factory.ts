@@ -20,24 +20,55 @@ import {
   STATUS_WEIGHTS,
 } from './large-seed.config';
 
-const MALE_FIRST_NAMES = [
-  'أحمد', 'عمر', 'يوسف', 'خالد', 'بشار', 'سامر', 'فراس', 'هادي',
-  'إبراهيم', 'جمال', 'كريم', 'لؤي', 'مجد', 'نبيل', 'رامي', 'طارق',
-  'وائل', 'زياد', 'بلال', 'أنس', 'غيث', 'حازم', 'مروان', 'نزار',
-];
+type NamePool = {
+  maleFirst: string[];
+  femaleFirst: string[];
+  family: string[];
+};
 
-const FEMALE_FIRST_NAMES = [
-  'لينا', 'رنا', 'هلا', 'نور', 'سلمى', 'ديما', 'ريم', 'مايا',
-  'غادة', 'هبة', 'جنة', 'لما', 'ميس', 'نادية', 'رشا', 'سارة',
-  'تلا', 'يارا', 'زينة', 'أمل', 'بشرى', 'فرح', 'ليان', 'ريمة',
-];
+/** Disjoint pools so doctors, secretaries and patients never share a full name. */
+const DOCTOR_NAMES: NamePool = {
+  maleFirst: [
+    'وسيم', 'مهند', 'عمار', 'إياد', 'حسام', 'فادي', 'معن', 'باسل',
+    'شادي', 'معتز', 'أيهم', 'قصي', 'نضال', 'غسان', 'ماهر',
+  ],
+  femaleFirst: [
+    'دانيا', 'علا', 'سناء', 'منى', 'ليلى', 'هند', 'رند', 'عبير',
+    'سوسن', 'إيناس',
+  ],
+  family: [
+    'الخطيب', 'نعمة', 'جبور', 'المقدسي', 'عيتاني', 'طرابلسي', 'كنعان',
+    'حمدان', 'بكري', 'أتاسي', 'الحفار', 'قوتلي',
+  ],
+};
 
-const FAMILY_NAMES = [
-  'الحسن', 'حداد', 'خوري', 'السيد', 'درويش', 'ناصر', 'شعبان',
-  'الأحمد', 'إبراهيم', 'منصور', 'صالح', 'بركت', 'كساب', 'عطار',
-  'زاهر', 'رفاعي', 'صباغ', 'حلبي', 'ديب', 'عزيز', 'مرديني', 'قاسم',
-  'طهان', 'يازجي', 'شاهين', 'غزال',
-];
+const SECRETARY_NAMES: NamePool = {
+  maleFirst: ['أيمن', 'رضوان', 'هيثم', 'عدنان', 'صباح'],
+  femaleFirst: ['سمر', 'نسرين', 'جمانة', 'بتول', 'إلهام', 'وفاء', 'منال'],
+  family: ['بيطار', 'نحاس', 'فارس', 'معلوف', 'شقير', 'داغر', 'تلحوق'],
+};
+
+const PATIENT_NAMES: NamePool = {
+  maleFirst: [
+    'أحمد', 'عمر', 'يوسف', 'خالد', 'بشار', 'سامر', 'فراس', 'هادي',
+    'إبراهيم', 'جمال', 'كريم', 'لؤي', 'مجد', 'نبيل', 'رامي', 'طارق',
+    'وائل', 'زياد', 'بلال', 'أنس', 'غيث', 'حازم', 'مروان', 'نزار',
+    'حسان', 'توفيق', 'سليمان', 'عبدالله', 'مصطفى', 'حيدر','محمد',
+    'عبد الرحمن', 'سعيد', 'سهيل', 'بكر', 'عثمان', 'براء', 'ماهر'
+  ],
+  femaleFirst: [
+    'لينا', 'رنا', 'هلا', 'نور', 'سلمى', 'ديما', 'ريم', 'مايا',
+    'غادة', 'هبة', 'جنة', 'لما', 'ميس', 'نادية', 'رشا', 'سارة',
+    'تلا', 'يارا', 'زينة', 'أمل', 'بشرى', 'فرح', 'ليان', 'ريمة',
+    'شيماء', 'آلاء', 'داليا', 'هديل', 'روان', 'ملك',
+  ],
+  family: [
+    'الحسن', 'حداد', 'خوري', 'السيد', 'درويش', 'ناصر', 'شعبان',
+    'الأحمد', 'إبراهيم', 'منصور', 'صالح', 'بركت', 'كساب', 'عطار',
+    'زاهر', 'رفاعي', 'صباغ', 'حلبي', 'ديب', 'عزيز', 'مرديني', 'قاسم',
+    'طهان', 'يازجي', 'شاهين', 'غزال', 'الحموي', 'اسكندر', 'نجم', 'وهبي',
+  ],
+};
 
 const WEEKEND_DAYS = [5, 6]; // Friday and Saturday in the Syrian working week
 
@@ -58,12 +89,33 @@ export interface AppointmentSlot {
   end_time: string;
 }
 
-export function fullName(gender: Gender): string {
-  const first = faker.helpers.arrayElement(
-    gender === Gender.MALE ? MALE_FIRST_NAMES : FEMALE_FIRST_NAMES,
-  );
+function uniqueNameFromPool(
+  gender: Gender,
+  pool: NamePool,
+  index: number,
+): string {
+  const firstNames = gender === Gender.MALE ? pool.maleFirst : pool.femaleFirst;
+  const first = firstNames[index % firstNames.length];
+  const family =
+    pool.family[Math.floor(index / firstNames.length) % pool.family.length];
 
-  return `${first} ${faker.helpers.arrayElement(FAMILY_NAMES)}`;
+  return `${first} ${family}`;
+}
+
+export function adminFullName(): string {
+  return 'كمال الريس';
+}
+
+export function doctorFullName(gender: Gender, index: number): string {
+  return `د. ${uniqueNameFromPool(gender, DOCTOR_NAMES, index)}`;
+}
+
+export function secretaryFullName(gender: Gender, index: number): string {
+  return uniqueNameFromPool(gender, SECRETARY_NAMES, index);
+}
+
+export function patientFullName(gender: Gender, index: number): string {
+  return uniqueNameFromPool(gender, PATIENT_NAMES, index);
 }
 
 export function doctorPhone(index: number): string {
@@ -179,7 +231,9 @@ export function doctorBio(name: string, specialtyTitle: string): string {
     'جامعة العلوم والتكنولوجيا الأردنية',
   ]);
 
-  return `الدكتور ${name} استشاري ${specialtyTitle} بخبرة ${years} سنة، تخرج من ${university}.`;
+  const bareName = name.startsWith('د. ') ? name.slice(3) : name;
+
+  return `الدكتور ${bareName} استشاري ${specialtyTitle} بخبرة ${years} سنة، تخرج من ${university}.`;
 }
 
 export function patientAddress(): string {

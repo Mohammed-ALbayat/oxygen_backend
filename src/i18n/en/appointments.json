@@ -25,5 +25,6 @@
   "INVALID_STATUS": "Invalid appointment status",
   "INVALID_PAYMENT_STATUS": "Invalid payment status",
   "STATUS_UPDATED_SUCCESS": "Appointment status updated successfully",
-  "PAYMENT_STATUS_UPDATED_SUCCESS": "Appointment payment status updated successfully"
+  "PAYMENT_STATUS_UPDATED_SUCCESS": "Appointment payment status updated successfully",
+  "COLLECTED_AMOUNT_UPDATED_SUCCESS": "Appointment amount updated successfully"
 }

@@ -48,7 +48,10 @@ import {
   doctorPhone,
   doctorSpecialization,
   doctorWorkingDays,
-  fullName,
+  doctorFullName,
+  adminFullName,
+  secretaryFullName,
+  patientFullName,
   futureWorkingDate,
   pastWorkingDate,
   patientAddress,
@@ -127,7 +130,7 @@ export class LargeSeederService {
 
     const admin = await this.userRepository.save(
       this.userRepository.create({
-        full_name: fullName(Gender.MALE),
+        full_name: adminFullName(),
         phone: ADMIN_PHONE,
         password: await bcrypt.hash(ADMIN_PASSWORD, 10),
         role: UserRole.ADMIN,
@@ -171,7 +174,7 @@ export class LargeSeederService {
 
     for (let i = 1; i <= largeSeedConfig.doctors; i++) {
       const gender = i % 3 === 0 ? Gender.FEMALE : Gender.MALE;
-      const name = fullName(gender);
+      const name = doctorFullName(gender, i);
       const specialty = specialties[(i - 1) % specialties.length];
 
       const user = await this.userRepository.save(
@@ -238,7 +241,7 @@ export class LargeSeederService {
 
       const user = await this.userRepository.save(
         this.userRepository.create({
-          full_name: fullName(gender),
+          full_name: secretaryFullName(gender, i),
           phone: secretaryPhone(i),
           password,
           role: UserRole.SECRETARY,
@@ -267,7 +270,7 @@ export class LargeSeederService {
 
       users.push(
         this.userRepository.create({
-          full_name: fullName(gender),
+          full_name: patientFullName(gender, i),
           phone: patientPhone(i),
           role: UserRole.PATIENT,
           gender,
