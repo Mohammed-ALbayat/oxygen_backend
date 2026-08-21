@@ -13,6 +13,7 @@ import {
   PaymentStatus,
 } from 'src/appointments/entities/appointment.entity';
 import { I18nService } from 'nestjs-i18n';
+import { AppointmentWhatsappNotifierService } from 'src/whatsapp/appointment-whatsapp-notifier.service';
 
 @Injectable()
 export class StripeService {
@@ -22,14 +23,13 @@ export class StripeService {
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
     private readonly i18n: I18nService,
+    private readonly appointmentWhatsappNotifier: AppointmentWhatsappNotifierService,
   ) {
-    // استخدمنا String() لتجنب خطأ undefined في TypeScript
     this.stripe = new Stripe(String(process.env.STRIPE_SECRET_KEY), {
       apiVersion: '2026-07-29.dahlia',
     });
   }
 
-  // 1. إنشاء جلسة الدفع (Checkout Session) للفرونت إند
   async createCheckoutSession(
     appointmentId: number,
     successUrl: string,
@@ -39,7 +39,7 @@ export class StripeService {
       const session = await this.stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         metadata: {
-          appointmentId: String(appointmentId), // إخفاء رقم الموعد ليقرأه الويب هوك
+          appointmentId: String(appointmentId),
         },
         line_items: [
           {
@@ -49,7 +49,7 @@ export class StripeService {
                 name: 'عربون حجز موعد - عيادة Oxygen',
                 description: `دفع عربون لتثبيت الموعد رقم ${appointmentId}`,
               },
-              unit_amount: DEPOSIT_AMOUNT * 100, // استخدام الثابت (يجب ضربه بـ 100 للسنتات)
+              unit_amount: DEPOSIT_AMOUNT * 100,
             },
             quantity: 1,
           },
@@ -59,7 +59,6 @@ export class StripeService {
         cancel_url: cancelUrl,
       });
 
-      // نعيد الرابط الذي طلبه مطور الفرونت إند ليفتحه في الـ WebView
       return { url: session.url };
     } catch (error) {
       console.error('Stripe Session Error:', error);
@@ -69,12 +68,15 @@ export class StripeService {
     }
   }
 
-  // 2. تحديث حالة الموعد (يستدعيها الويب هوك بناءً على الـ ID)
   async updateAppointmentStatusById(
     appointmentId: number,
     status: PaymentStatus,
-    paymentIntentId?: string, // 👈 تمت الإضافة: معامل اختياري لاستقبال رقم العملية من الويب هوك
+    paymentIntentId?: string,
   ) {
+    const existing = await this.appointmentRepository.findOne({
+      where: { id: appointmentId },
+    });
+
     const updateData: any = {
       payment_status: status,
       ...(status === PaymentStatus.DEPOSIT_PAID
@@ -82,18 +84,34 @@ export class StripeService {
         : {}),
     };
 
-    // 👈 تمت الإضافة: إذا أرسلنا رقم العملية، يتم حفظه في الداتا بيز
     if (paymentIntentId) {
       updateData.stripe_payment_intent_id = paymentIntentId;
     }
 
-    await this.appointmentRepository.update(
-      { id: appointmentId }, // البحث باستخدام ID الموعد مباشرة
-      updateData,
-    );
+    await this.appointmentRepository.update({ id: appointmentId }, updateData);
+
+    if (status === PaymentStatus.DEPOSIT_PAID && existing) {
+      const appointment = await this.findAppointmentForNotification(appointmentId);
+      if (appointment) {
+        void this.appointmentWhatsappNotifier.notifyPaymentStatus(
+          appointment,
+          existing.payment_status,
+          status,
+        );
+      }
+    }
   }
 
-  // 3. التحقق من التوقيع الأمني للويب هوك
+  private async findAppointmentForNotification(appointmentId: number) {
+    return this.appointmentRepository.findOne({
+      where: { id: appointmentId },
+      relations: {
+        patient: { user: true },
+        doctor: { user: true },
+      },
+    });
+  }
+
   async verifyWebhookSignature(payload: Buffer, signature: string) {
     const webhookSecret = String(process.env.STRIPE_WEBHOOK_SECRET);
 
@@ -108,7 +126,6 @@ export class StripeService {
     }
   }
 
-  // 4. الدالة التي يستخدمها الفرونت إند لفحص حالة الدفع بعد العودة للتطبيق
   async getPaymentStatus(appointmentId: number) {
     const appointment = await this.appointmentRepository.findOne({
       where: { id: appointmentId },
@@ -126,9 +143,7 @@ export class StripeService {
     };
   }
 
-  // 5. 👈 تمت الإضافة: دالة إرجاع العربون (Refund)
   async refundAppointmentDeposit(appointmentId: number) {
-    // نبحث عن الموعد في الداتا بيز
     const appointment = await this.appointmentRepository.findOne({
       where: { id: appointmentId },
     });
@@ -139,7 +154,6 @@ export class StripeService {
       );
     }
 
-    // نتأكد أن الموعد مدفوع وله Payment Intent محفوظ
     if (!appointment.stripe_payment_intent_id) {
       throw new BadRequestException(
         this.i18n.t('stripe.NO_PAYMENT_TO_REFUND'),
@@ -147,19 +161,27 @@ export class StripeService {
     }
 
     try {
-      // نطلب من سترايب إرجاع المبلغ باستخدام الـ Intent المحفوظ
       await this.stripe.refunds.create({
         payment_intent: appointment.stripe_payment_intent_id,
       });
 
-      // نحدث حالة الموعد في الداتا بيز (تأكد من وجود حالة REFUNDED في PaymentStatus)
       await this.appointmentRepository.update(
         { id: appointmentId },
         {
           payment_status: PaymentStatus.REFUNDED,
-          collected_amount: 0, // تصفير المبلغ لأنه رجع
+          collected_amount: 0,
         },
       );
+
+      const updatedAppointment =
+        await this.findAppointmentForNotification(appointmentId);
+      if (updatedAppointment) {
+        void this.appointmentWhatsappNotifier.notifyPaymentStatus(
+          updatedAppointment,
+          appointment.payment_status,
+          PaymentStatus.REFUNDED,
+        );
+      }
 
       return {
         success: true,

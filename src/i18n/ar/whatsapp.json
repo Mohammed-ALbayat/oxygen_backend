@@ -1,0 +1,11 @@
+{
+  "APPOINTMENT_STATUS_PENDING": "تم تحديث حالة موعدك مع د. {doctor} إلى قيد الانتظار. التاريخ: {date} الساعة {time}.",
+  "APPOINTMENT_STATUS_ACTIVE": "تم تأكيد موعدك مع د. {doctor} بتاريخ {date} الساعة {time}.",
+  "APPOINTMENT_STATUS_CANCELLED": "تم إلغاء موعدك مع د. {doctor} بتاريخ {date}.",
+  "APPOINTMENT_RESCHEDULED": "تم تغيير موعدك مع د. {doctor} إلى تاريخ {date} الساعة {time}.",
+  "PAYMENT_STATUS_PAID": "تم تحديث حالة الدفع لموعدك مع د. {doctor} إلى مدفوع بالكامل.",
+  "PAYMENT_STATUS_DEPOSIT_PAID": "تم استلام عربون حجز موعدك مع د. {doctor} بتاريخ {date}.",
+  "PAYMENT_STATUS_REFUNDED": "تم استرداد مبلغ العربون لموعدك مع د. {doctor}.",
+  "PAYMENT_STATUS_INSURANCE": "تم تحديث حالة الدفع لموعدك مع د. {doctor} إلى تأمين.",
+  "PAYMENT_STATUS_UNPAID": "تم تحديث حالة الدفع لموعدك مع د. {doctor} إلى غير مدفوع."
+}

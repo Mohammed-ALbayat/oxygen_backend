@@ -20,6 +20,8 @@ import { AppointmentWaitingTimeService } from './appointment-waiting-time.servic
 import { CancellationReasonsService } from 'src/cancellation-reasons/cancellation-reasons.service';
 import { Patient } from 'src/patients/entities/patient.entity';
 import { I18nService } from 'nestjs-i18n';
+import { AppointmentWhatsappNotifierService } from 'src/whatsapp/appointment-whatsapp-notifier.service';
+import { extractDateString } from './utils/date.helper';
 
 @Injectable()
 export class AdminAppointmentsService {
@@ -33,6 +35,7 @@ export class AdminAppointmentsService {
     private appointmentWaitingTimeService: AppointmentWaitingTimeService,
     private cancellationReasonsService: CancellationReasonsService,
     private readonly i18n: I18nService,
+    private readonly appointmentWhatsappNotifier: AppointmentWhatsappNotifierService,
   ) {}
 
   getDoctorSlots(doctorId: number, date?: string) {
@@ -132,12 +135,28 @@ export class AdminAppointmentsService {
     const appointment =
       await this.appointmentsService.findAppointmentById(appointment_id);
 
-    return this.appointmentsService.updateAppointment(
+    const previousDate = extractDateString(appointment.appointment_date);
+    const previousStartTime = appointment.start_time;
+
+    const result = await this.appointmentsService.updateAppointment(
       appointment,
       dto.date,
       dto.start_time,
       { bypassTimeConstraints: true },
     );
+
+    const updated = result.appointment;
+    const dateChanged =
+      extractDateString(updated.appointment_date) !== previousDate;
+    const timeChanged = updated.start_time !== previousStartTime;
+
+    if (dateChanged || timeChanged) {
+      void this.appointmentWhatsappNotifier.notifyAppointmentRescheduled(
+        updated,
+      );
+    }
+
+    return result;
   }
 
   async updateAppointmentStatus(
@@ -152,6 +171,8 @@ export class AdminAppointmentsService {
         this.i18n.t('appointments.INVALID_STATUS'),
       );
     }
+
+    const previousStatus = appointment.status;
 
     this.appointmentWaitingTimeService.applyTransition(
       appointment,
@@ -173,6 +194,12 @@ export class AdminAppointmentsService {
       });
     }
 
+    void this.appointmentWhatsappNotifier.notifyAppointmentStatus(
+      appointment,
+      previousStatus,
+      status,
+    );
+
     return {
       message: this.i18n.t('appointments.STATUS_UPDATED_SUCCESS'),
       appointment,
@@ -192,6 +219,9 @@ export class AdminAppointmentsService {
       );
     }
 
+    const previousPaymentStatus = appointment.payment_status;
+    const previousAppointmentStatus = appointment.status;
+
     appointment.payment_status = paymentStatus;
     appointment.collected_amount = this.resolveCollectedAmount(
       appointment,
@@ -207,6 +237,23 @@ export class AdminAppointmentsService {
 
     await this.appointmentRepository.save(appointment);
 
+    void this.appointmentWhatsappNotifier.notifyPaymentStatus(
+      appointment,
+      previousPaymentStatus,
+      paymentStatus,
+    );
+
+    if (
+      previousAppointmentStatus === AppointmentStatus.PENDING &&
+      appointment.status === AppointmentStatus.ACTIVE
+    ) {
+      void this.appointmentWhatsappNotifier.notifyAppointmentStatus(
+        appointment,
+        previousAppointmentStatus,
+        AppointmentStatus.ACTIVE,
+      );
+    }
+
     return {
       message: this.i18n.t('appointments.PAYMENT_STATUS_UPDATED_SUCCESS'),
       appointment,
@@ -221,14 +268,33 @@ export class AdminAppointmentsService {
       await this.appointmentsService.findAppointmentById(appointment_id);
 
     const amountType = dto.amountType ?? AmountType.COLLECTED;
+    const previousPaymentStatus = appointment.payment_status;
+    const previousAppointmentStatus = appointment.status;
 
     if (amountType === AmountType.DEPOSIT) {
       appointment.deposit_amount = dto.collectedAmount;
+      appointment.payment_status = PaymentStatus.DEPOSIT_PAID;
+      appointment.status = AppointmentStatus.ACTIVE;
     } else {
       appointment.collected_amount = dto.collectedAmount;
+      appointment.payment_status = PaymentStatus.PAID;
     }
 
     await this.appointmentRepository.save(appointment);
+
+    void this.appointmentWhatsappNotifier.notifyPaymentStatus(
+      appointment,
+      previousPaymentStatus,
+      appointment.payment_status,
+    );
+
+    if (previousAppointmentStatus !== appointment.status) {
+      void this.appointmentWhatsappNotifier.notifyAppointmentStatus(
+        appointment,
+        previousAppointmentStatus,
+        appointment.status,
+      );
+    }
 
     return {
       message: this.i18n.t('appointments.COLLECTED_AMOUNT_UPDATED_SUCCESS'),

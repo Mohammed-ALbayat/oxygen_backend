@@ -12,10 +12,12 @@ import { OtpService } from './otp.service';
 import { Patient } from 'src/patients/entities/patient.entity';
 import { Doctor } from 'src/doctors/entities/doctor.entity';
 import { Secretary } from 'src/secretaries/entities/secretary.entity';
+import { WhatsappModule } from 'src/whatsapp/whatsapp.module';
 
 @Module({
   imports: [
     PassportModule,
+    WhatsappModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
