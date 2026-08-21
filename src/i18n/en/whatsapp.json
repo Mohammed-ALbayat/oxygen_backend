@@ -1,0 +1,11 @@
+{
+  "APPOINTMENT_STATUS_PENDING": "Your appointment with Dr. {doctor} is now pending. Date: {date} at {time}.",
+  "APPOINTMENT_STATUS_ACTIVE": "Your appointment with Dr. {doctor} is confirmed for {date} at {time}.",
+  "APPOINTMENT_STATUS_CANCELLED": "Your appointment with Dr. {doctor} on {date} has been cancelled.",
+  "APPOINTMENT_RESCHEDULED": "Your appointment with Dr. {doctor} has been rescheduled to {date} at {time}.",
+  "PAYMENT_STATUS_PAID": "Payment for your appointment with Dr. {doctor} is now fully paid.",
+  "PAYMENT_STATUS_DEPOSIT_PAID": "Deposit received for your appointment with Dr. {doctor} on {date}.",
+  "PAYMENT_STATUS_REFUNDED": "Your appointment deposit with Dr. {doctor} has been refunded.",
+  "PAYMENT_STATUS_INSURANCE": "Payment for your appointment with Dr. {doctor} is now set to insurance.",
+  "PAYMENT_STATUS_UNPAID": "Payment for your appointment with Dr. {doctor} is now unpaid."
+}

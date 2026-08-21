@@ -18,6 +18,7 @@ import { DoctorReviewsController } from './doctor-reviews.controller';
 import { PusherModule } from 'src/pusher/pusher.module';
 import { AppointmentWaitingTimeService } from './appointment-waiting-time.service';
 import { CancellationReasonsModule } from 'src/cancellation-reasons/cancellation-reasons.module';
+import { WhatsappModule } from 'src/whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { CancellationReasonsModule } from 'src/cancellation-reasons/cancellation
     ]),
     PusherModule,
     CancellationReasonsModule,
+    WhatsappModule,
   ],
   controllers: [
     AdminAppointmentsController,

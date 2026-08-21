@@ -22,6 +22,7 @@ import {
   generateTargetDates,
 } from './utils/date.helper';
 import { I18nService } from 'nestjs-i18n';
+import { AppointmentWhatsappNotifierService } from 'src/whatsapp/appointment-whatsapp-notifier.service';
 
 @Injectable()
 export class AppointmentsService {
@@ -35,6 +36,7 @@ export class AppointmentsService {
     @InjectRepository(Specialty)
     private specialtyRepository: Repository<Specialty>,
     private readonly i18n: I18nService,
+    private readonly appointmentWhatsappNotifier: AppointmentWhatsappNotifierService,
   ) {}
 
   async getDoctorSlots(doctorId: number, date?: string) {
@@ -265,9 +267,16 @@ export class AppointmentsService {
       appointment.cancellation_reason = reason.label;
     }
 
+    const previousStatus = appointment.status;
     appointment.status = AppointmentStatus.CANCELLED;
 
     await this.appointmentRepository.save(appointment);
+
+    void this.appointmentWhatsappNotifier.notifyAppointmentStatus(
+      appointment,
+      previousStatus,
+      AppointmentStatus.CANCELLED,
+    );
 
     return {
       message: this.i18n.t('appointments.CANCELLED_SUCCESS'),
