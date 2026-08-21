@@ -44,6 +44,7 @@ export class AdminAppointmentsController {
   @ApiQuery({ name: 'page', required: true, type: Number })
   @ApiQuery({ name: 'limit', required: true, type: Number })
   @ApiQuery({ name: 'patient_id', required: false, type: Number })
+  @ApiQuery({ name: 'specialty_id', required: false, type: Number })
   @ApiQuery({
     name: 'appointment_status',
     required: false,
@@ -59,6 +60,8 @@ export class AdminAppointmentsController {
     @Query('limit', ParseIntPipe) limit: number,
     @Query('patient_id', new ParseIntPipe({ optional: true }))
     patientId?: number,
+    @Query('specialty_id', new ParseIntPipe({ optional: true }))
+    specialtyId?: number,
     @Query('appointment_status') appointment_status?: AppointmentStatus,
   ) {
     return this.adminAppointmentsService.findAll(
@@ -66,6 +69,7 @@ export class AdminAppointmentsController {
       limit,
       appointment_status,
       patientId,
+      specialtyId,
     );
   }
 

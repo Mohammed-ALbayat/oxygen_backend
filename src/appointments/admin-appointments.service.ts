@@ -68,6 +68,7 @@ export class AdminAppointmentsService {
     limit: number,
     status: AppointmentStatus | undefined,
     patientId?: number,
+    specialtyId?: number,
   ) {
     const query = this.appointmentRepository
       .createQueryBuilder('appointment')
@@ -88,6 +89,12 @@ export class AdminAppointmentsService {
 
     if (patientId) {
       query.andWhere('appointment.patient_id = :patientId', { patientId });
+    }
+
+    if (specialtyId) {
+      query.andWhere('appointment.department_id = :specialtyId', {
+        specialtyId,
+      });
     }
 
     const [appointments, total] = await query.getManyAndCount();
