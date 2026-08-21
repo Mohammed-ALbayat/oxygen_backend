@@ -9,6 +9,10 @@ import {
 } from './entities/appointment.entity';
 import { AdminCreateAppointmentDto } from './dto/admin-create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/admin-update-appointment.dto';
+import {
+  AmountType,
+  UpdateCollectedAmountDto,
+} from './dto/update-collected-amount.dto';
 import { AppointmentsService } from './appointments.service';
 import { toListItem } from './utils/to-list-item';
 import { PusherService } from 'src/pusher/pusher.service';
@@ -205,6 +209,29 @@ export class AdminAppointmentsService {
 
     return {
       message: this.i18n.t('appointments.PAYMENT_STATUS_UPDATED_SUCCESS'),
+      appointment,
+    };
+  }
+
+  async updateCollectedAmount(
+    appointment_id: number,
+    dto: UpdateCollectedAmountDto,
+  ) {
+    const appointment =
+      await this.appointmentsService.findAppointmentById(appointment_id);
+
+    const amountType = dto.amountType ?? AmountType.COLLECTED;
+
+    if (amountType === AmountType.DEPOSIT) {
+      appointment.deposit_amount = dto.collectedAmount;
+    } else {
+      appointment.collected_amount = dto.collectedAmount;
+    }
+
+    await this.appointmentRepository.save(appointment);
+
+    return {
+      message: this.i18n.t('appointments.COLLECTED_AMOUNT_UPDATED_SUCCESS'),
       appointment,
     };
   }

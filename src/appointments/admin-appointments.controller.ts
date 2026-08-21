@@ -26,6 +26,7 @@ import { MessageDto } from 'src/common/dto/message.dto';
 import { AdminCreateAppointmentDto } from './dto/admin-create-appointment.dto';
 import { ApiEndpoint } from 'src/common/swagger/api-endpoint.decorator';
 import { UpdateAppointmentDto } from './dto/admin-update-appointment.dto';
+import { UpdateCollectedAmountDto } from './dto/update-collected-amount.dto';
 import {
   AppointmentStatus,
   PaymentStatus,
@@ -185,5 +186,18 @@ export class AdminAppointmentsController {
       +id,
       paymentStatus,
     );
+  }
+
+  @Patch('update-collected-amount/:id')
+  @ApiOkResponse({ type: MessageDto })
+  @ApiEndpoint('Record the amount collected for an appointment', [
+    UserRole.ADMIN,
+    UserRole.SECRETARY,
+  ])
+  updateCollectedAmount(
+    @Param('id') id: string,
+    @Body() dto: UpdateCollectedAmountDto,
+  ) {
+    return this.adminAppointmentsService.updateCollectedAmount(+id, dto);
   }
 }
