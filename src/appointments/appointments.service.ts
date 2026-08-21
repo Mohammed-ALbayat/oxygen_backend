@@ -23,6 +23,7 @@ import {
 } from './utils/date.helper';
 import { I18nService } from 'nestjs-i18n';
 import { AppointmentWhatsappNotifierService } from 'src/whatsapp/appointment-whatsapp-notifier.service';
+import { toStorageUrl } from 'src/storage/utils/storage-url.util';
 
 @Injectable()
 export class AppointmentsService {
@@ -192,7 +193,7 @@ export class AppointmentsService {
       doctors: (specialty.doctors || []).map((doctor) => ({
         id: doctor.user_id,
         name: doctor.user?.full_name,
-        image_path: doctor.user?.image_path,
+        image_path: toStorageUrl(doctor.user?.image_path),
         schedules: (doctor.schedules || []).map((s) => ({
           day_of_week: s.day_of_week,
           start_time: s.start_time,
