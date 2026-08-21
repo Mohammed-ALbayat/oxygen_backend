@@ -268,14 +268,33 @@ export class AdminAppointmentsService {
       await this.appointmentsService.findAppointmentById(appointment_id);
 
     const amountType = dto.amountType ?? AmountType.COLLECTED;
+    const previousPaymentStatus = appointment.payment_status;
+    const previousAppointmentStatus = appointment.status;
 
     if (amountType === AmountType.DEPOSIT) {
       appointment.deposit_amount = dto.collectedAmount;
+      appointment.payment_status = PaymentStatus.DEPOSIT_PAID;
+      appointment.status = AppointmentStatus.ACTIVE;
     } else {
       appointment.collected_amount = dto.collectedAmount;
+      appointment.payment_status = PaymentStatus.PAID;
     }
 
     await this.appointmentRepository.save(appointment);
+
+    void this.appointmentWhatsappNotifier.notifyPaymentStatus(
+      appointment,
+      previousPaymentStatus,
+      appointment.payment_status,
+    );
+
+    if (previousAppointmentStatus !== appointment.status) {
+      void this.appointmentWhatsappNotifier.notifyAppointmentStatus(
+        appointment,
+        previousAppointmentStatus,
+        appointment.status,
+      );
+    }
 
     return {
       message: this.i18n.t('appointments.COLLECTED_AMOUNT_UPDATED_SUCCESS'),
